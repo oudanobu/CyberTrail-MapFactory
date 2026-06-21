@@ -72,7 +72,7 @@ jobs:
         run: |
           echo "===> Compiling Liaoning MBTiles..."
           wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
-          java -Xmx6g -jar bin/planetiler.jar --download --osm-path=data/liaoning-latest.osm.pbf --output=dist/liaoning.mbtiles --nodemap-type=sparse --force
+          java -Xmx6g -jar bin/planetiler.jar --osm-path=data/liaoning-latest.osm.pbf --output=dist/liaoning.mbtiles --force
 
       - name: Compile - Dandong MBTiles
         if: steps.target-selector.outputs.selected_target == 'dandong'
@@ -86,7 +86,7 @@ jobs:
           osmium extract --bbox 123.38,39.73,125.70,41.20 data/liaoning-latest.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways --overwrite
           
           # Compile cropped dandong.osm.pbf with Planetiler
-          java -Xmx4g -jar bin/planetiler.jar --download --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles --nodemap-type=sparse --force
+          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles --force
 
       - name: Check Built Visual Files
         run: |

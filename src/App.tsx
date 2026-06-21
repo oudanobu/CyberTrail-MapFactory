@@ -195,7 +195,7 @@ jobs:
         run: |
           wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
           osmium extract --bbox 123.38,39.73,125.70,41.20 data/liaoning-latest.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways
-          java -Xmx4g -jar bin/planetiler.jar --download --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles`
+          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles`
       };
     }
     if (activeFile === 'script') {
