@@ -7,14 +7,18 @@ on:
   workflow_dispatch:
     inputs:
       map_target:
-        description: 'Compile Target (china_overview, liaoning, or dandong)'
+        description: 'Compile Target (china_overview, liaoning_overview, dandong_detail, zhenxing_detail, yuanbao_detail, zhenan_detail, or all)'
         required: true
-        default: 'dandong'
+        default: 'dandong_detail'
         type: choice
         options:
           - china_overview
-          - dandong
-          - liaoning
+          - liaoning_overview
+          - dandong_detail
+          - zhenxing_detail
+          - yuanbao_detail
+          - zhenan_detail
+          - all
 
 permissions:
   contents: write
@@ -45,8 +49,8 @@ jobs:
 
       - name: Prepare Workspace and Output Directories
         run: |
-          mkdir -p data/sources
-          mkdir -p dist
+          mkdir -p data/sources dist maps/admin_boundaries
+          chmod +x maps/crop_*.sh || true
 
       - name: Download Planetiler Auxiliary Data
         run: |
@@ -56,45 +60,54 @@ jobs:
       - name: Establish Target Selection
         id: target-selector
         run: |
-          # Determine map targets to compile
           TARGET="${{ github.event.inputs.map_target }}"
           if [ -z "$TARGET" ]; then
-            if [ "${{ github.event_name }}" = "push" ]; then
-              TARGET="dandong"
-            else
-              TARGET="dandong"
-            fi
+            TARGET="dandong_detail"
           fi
           echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "Selected Compilation Target: $TARGET"
 
       - name: Compile - China Overview MBTiles
-        if: steps.target-selector.outputs.selected_target == 'china_overview'
+        if: steps.target-selector.outputs.selected_target == 'china_overview' || steps.target-selector.outputs.selected_target == 'all'
         run: |
           echo "===> Compiling China Overview MBTiles (Max Zoom: 6)..."
-          wget -O data/china-latest.osm.pbf https://download.geofabrik.de/asia/china-latest.osm.pbf
+          sh maps/crop_china.sh
           java -Xmx6g -jar bin/planetiler.jar --osm-path=data/china-latest.osm.pbf --output=dist/china_overview.mbtiles --maxzoom=6 --force
 
-      - name: Compile - Liaoning MBTiles
-        if: steps.target-selector.outputs.selected_target == 'liaoning'
+      - name: Compile - Liaoning Overview MBTiles
+        if: steps.target-selector.outputs.selected_target == 'liaoning_overview' || steps.target-selector.outputs.selected_target == 'all'
         run: |
-          echo "===> Compiling Liaoning MBTiles..."
-          wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
-          java -Xmx6g -jar bin/planetiler.jar --osm-path=data/liaoning-latest.osm.pbf --output=dist/liaoning.mbtiles --force
+          echo "===> Compiling Liaoning Overview MBTiles (Max Zoom: 8)..."
+          sh maps/crop_liaoning.sh
+          java -Xmx6g -jar bin/planetiler.jar --osm-path=data/liaoning.osm.pbf --output=dist/liaoning_overview.mbtiles --maxzoom=8 --force
 
-      - name: Compile - Dandong MBTiles
-        if: steps.target-selector.outputs.selected_target == 'dandong'
+      - name: Compile - Dandong Detail MBTiles
+        if: steps.target-selector.outputs.selected_target == 'dandong_detail' || steps.target-selector.outputs.selected_target == 'all'
         run: |
-          echo "===> Compiling Dandong MBTiles..."
-          # Download Liaoning source as Dandong must be cropped from it
-          wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
-          
-          # Dandong Bounding Box: 123.38 to 125.70 Longitude, 39.73 to 41.20 Latitude
-          # Slicing Dandong OSM PBF from Liaoning data
-          osmium extract --bbox 123.38,39.73,125.70,41.20 data/liaoning-latest.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways --overwrite
-          
-          # Compile cropped dandong.osm.pbf with Planetiler
-          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles --force
+          echo "===> Compiling Dandong Detail MBTiles..."
+          sh maps/crop_dandong.sh
+          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/dandong.osm.pbf --output=dist/dandong_detail.mbtiles --maxzoom=14 --force
+
+      - name: Compile - Zhenxing Detail MBTiles
+        if: steps.target-selector.outputs.selected_target == 'zhenxing_detail' || steps.target-selector.outputs.selected_target == 'all'
+        run: |
+          echo "===> Compiling Zhenxing Detail MBTiles..."
+          sh maps/crop_zhenxing.sh
+          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/zhenxing.osm.pbf --output=dist/zhenxing_detail.mbtiles --maxzoom=16 --force
+
+      - name: Compile - Yuanbao Detail MBTiles
+        if: steps.target-selector.outputs.selected_target == 'yuanbao_detail' || steps.target-selector.outputs.selected_target == 'all'
+        run: |
+          echo "===> Compiling Yuanbao Detail MBTiles..."
+          sh maps/crop_yuanbao.sh
+          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/yuanbao.osm.pbf --output=dist/yuanbao_detail.mbtiles --maxzoom=16 --force
+
+      - name: Compile - Zhenan Detail MBTiles
+        if: steps.target-selector.outputs.selected_target == 'zhenan_detail' || steps.target-selector.outputs.selected_target == 'all'
+        run: |
+          echo "===> Compiling Zhenan Detail MBTiles..."
+          sh maps/crop_zhenan.sh
+          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/zhenan.osm.pbf --output=dist/zhenan_detail.mbtiles --maxzoom=16 --force
 
       - name: Check Built Visual Files
         run: |
@@ -105,15 +118,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Generate timestamped Release Name matching "maps-YYYYMMDD-HHMM"
           RELEASE_TAG="maps-$(date +'%Y%m%d-%H%M')"
           echo "Creating repository release: $RELEASE_TAG"
           
-          # Check if there are compiled artifacts to publish
           if [ -n "$(ls -A dist/*.mbtiles 2>/dev/null)" ]; then
             gh release create "$RELEASE_TAG" dist/*.mbtiles \
               --title "$RELEASE_TAG" \
-              --notes "Automated Map Production Release for CyberTrail-MapFactory. Target select: ${{ steps.target-selector.outputs.selected_target }}. Download the compiled mbtiles below for offline operations."
+              --notes "Automated Map Production Release. Target select: ${{ steps.target-selector.outputs.selected_target }}."
           else
             echo "No compiled mbtiles artifacts found! Release creation cancelled."
             exit 1
