@@ -90,7 +90,7 @@ export default function TerminalLogs({ selectedTarget, customBbox }: TerminalLog
 
     const compileSequence: SeqEntry[] = [
       { text: `${timestamp()} 🚀 Executing Planetiler Vector Stream Compression...`, type: 'info', delay: 6200 },
-      { text: `java -Xmx4g -jar planetiler.jar --osm-path=target.osm.pbf --output=dist/${selectedTarget.key}.mbtiles --force`, type: 'metric', delay: 6505 },
+      { text: `java -Xmx4g -jar planetiler.jar --osm-path=target.osm.pbf --output=dist/${selectedTarget.key}.mbtiles${selectedTarget.key === 'china_overview' ? ' --maxzoom=6' : ''} --force`, type: 'metric', delay: 6505 },
       { text: `[Tile-Engine] Stage 1: Reading nodes and storing locations (NodeMap Array)...`, type: 'info', delay: 6900 },
       { text: `[Tile-Engine] Processed: 1,500,000 nodes/s (Memory utilization: 42%)`, type: 'metric', delay: 7200 },
       { text: `[Tile-Engine] Stage 2: Reading ways and relations (Multipolygons)...`, type: 'info', delay: 7500 },

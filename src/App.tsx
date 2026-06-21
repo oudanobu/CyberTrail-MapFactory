@@ -59,15 +59,15 @@ const MAP_TARGETS: MapTarget[] = [
     compileTimeSec: 280
   },
   {
-    key: "china",
-    name: "China Core",
-    chineseName: "中华人民共和国",
+    key: "china_overview",
+    name: "China Overview",
+    chineseName: "中国概况底图",
     sourceUrl: "https://download.geofabrik.de/asia/china-latest.osm.pbf",
     bbox: [73.66, 18.16, 135.05, 53.56],
-    description: "Country-wide bulk cartographical mapping database compiled via Geofabrik.",
+    description: "Country-wide overview map (zoom 0-6). Contains admin boundaries, major cities, water, and highways. Not for navigation.",
     layerType: "country",
-    estimatedSize: "2.4 GB",
-    compileTimeSec: 4200
+    estimatedSize: "55 MB",
+    compileTimeSec: 150
   },
   // Phase 2 scope
   {
@@ -293,7 +293,7 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
             {/* Phase 1 List */}
             <span className="text-[9px] text-slate-500 font-semibold tracking-wider uppercase block mb-2">Phase 1 Active Targets</span>
             <div className="space-y-1.5 mb-4">
-              {MAP_TARGETS.filter(t => ['dandong', 'liaoning', 'china'].includes(t.key)).map((target) => (
+              {MAP_TARGETS.filter(t => ['china_overview', 'dandong', 'liaoning'].includes(t.key)).map((target) => (
                 <button
                   key={target.key}
                   onClick={() => setSelectedTarget(target)}
@@ -321,7 +321,7 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
             {/* Phase 2 List */}
             <span className="text-[9px] text-slate-500 font-semibold tracking-wider uppercase block mb-2">Phase 2 Future Roadmap Targets</span>
             <div className="space-y-1.5">
-              {MAP_TARGETS.filter(t => !['dandong', 'liaoning', 'china'].includes(t.key)).map((target) => (
+              {MAP_TARGETS.filter(t => !['china_overview', 'dandong', 'liaoning'].includes(t.key)).map((target) => (
                 <button
                   key={target.key}
                   onClick={() => setSelectedTarget(target)}

@@ -7,11 +7,12 @@ on:
   workflow_dispatch:
     inputs:
       map_target:
-        description: 'Compile Target (liaoning or dandong)'
+        description: 'Compile Target (china_overview, liaoning, or dandong)'
         required: true
         default: 'dandong'
         type: choice
         options:
+          - china_overview
           - dandong
           - liaoning
 
@@ -66,6 +67,13 @@ jobs:
           fi
           echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "Selected Compilation Target: $TARGET"
+
+      - name: Compile - China Overview MBTiles
+        if: steps.target-selector.outputs.selected_target == 'china_overview'
+        run: |
+          echo "===> Compiling China Overview MBTiles (Max Zoom: 6)..."
+          wget -O data/china-latest.osm.pbf https://download.geofabrik.de/asia/china-latest.osm.pbf
+          java -Xmx6g -jar bin/planetiler.jar --osm-path=data/china-latest.osm.pbf --output=dist/china_overview.mbtiles --maxzoom=6 --force
 
       - name: Compile - Liaoning MBTiles
         if: steps.target-selector.outputs.selected_target == 'liaoning'
