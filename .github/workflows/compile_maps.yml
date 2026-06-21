@@ -1,0 +1,117 @@
+name: Compile Map Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      map_target:
+        description: 'Compile Target (china, liaoning, dandong, or all)'
+        required: true
+        default: 'dandong'
+        type: choice
+        options:
+          - dandong
+          - liaoning
+          - china
+          - all
+
+permissions:
+  contents: write
+
+jobs:
+  build-maps:
+    name: Build Map Targets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Install GIS Crops and Osmium Tool
+        run: |
+          sudo apt-get update && sudo apt-get install -y osmium-tool wget aria2 jq
+
+      - name: Download Planetiler
+        run: |
+          mkdir -p bin
+          wget -q https://github.com/onthegomap/planetiler/releases/latest/download/planetiler.jar -O bin/planetiler.jar
+          chmod +x bin/planetiler.jar
+
+      - name: Prepare Workspace and Output Directories
+        run: |
+          mkdir -p data
+          mkdir -p dist
+
+      - name: Establish Target Selection
+        id: target-selector
+        run: |
+          # Determine map targets to compile
+          TARGET="${{ github.event.inputs.map_target }}"
+          if [ -z "$TARGET" ]; then
+            if [ "${{ github.event_name }}" = "push" ]; then
+              TARGET="dandong"
+            else
+              TARGET="dandong"
+            fi
+          fi
+          echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "Selected Compilation Target: $TARGET"
+
+      - name: Compile - China MBTiles
+        if: steps.target-selector.outputs.selected_target == 'china' || steps.target-selector.outputs.selected_target == 'all'
+        run: |
+          echo "===> Compiling China MBTiles..."
+          wget -O data/china-latest.osm.pbf https://download.geofabrik.de/asia/china-latest.osm.pbf
+          java -Xmx6g -jar bin/planetiler.jar --osm-path=data/china-latest.osm.pbf --output=dist/china.mbtiles --nodemap-type=sparse --force
+
+      - name: Compile - Liaoning MBTiles
+        if: steps.target-selector.outputs.selected_target == 'liaoning' || steps.target-selector.outputs.selected_target == 'all'
+        run: |
+          echo "===> Compiling Liaoning MBTiles..."
+          wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
+          java -Xmx6g -jar bin/planetiler.jar --osm-path=data/liaoning-latest.osm.pbf --output=dist/liaoning.mbtiles --nodemap-type=sparse --force
+
+      - name: Compile - Dandong MBTiles
+        if: steps.target-selector.outputs.selected_target == 'dandong' || steps.target-selector.outputs.selected_target == 'all'
+        run: |
+          echo "===> Compiling Dandong MBTiles..."
+          # Download Liaoning source as Dandong must be cropped from it
+          wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
+          
+          # Dandong Bounding Box: 123.38 to 125.70 Longitude, 39.73 to 41.20 Latitude
+          # Slicing Dandong OSM PBF from Liaoning data
+          osmium extract --bbox 123.38,39.73,125.70,41.20 data/liaoning-latest.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways --overwrite
+          
+          # Compile cropped dandong.osm.pbf with Planetiler
+          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles --nodemap-type=sparse --force
+
+      - name: Check Built Visual Files
+        run: |
+          echo "=== Built Map Archives ==="
+          ls -lh dist/
+
+      - name: Create GitHub Release and Upload Assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Generate timestamped Release Name matching "maps-YYYYMMDD-HHMM"
+          RELEASE_TAG="maps-$(date +'%Y%m%d-%H%M')"
+          echo "Creating repository release: $RELEASE_TAG"
+          
+          # Check if there are compiled artifacts to publish
+          if [ -n "$(ls -A dist/*.mbtiles 2>/dev/null)" ]; then
+            gh release create "$RELEASE_TAG" dist/*.mbtiles \
+              --title "$RELEASE_TAG" \
+              --notes "Automated Map Production Release for CyberTrail-MapFactory. Target select: ${{ steps.target-selector.outputs.selected_target }}. Download the compiled mbtiles below for offline operations."
+          else
+            echo "No compiled mbtiles artifacts found! Release creation cancelled."
+            exit 1
+          fi
