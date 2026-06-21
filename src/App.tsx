@@ -160,15 +160,16 @@ on:
   workflow_dispatch:
     inputs:
       map_target:
-        description: 'Compile Target (china, liaoning, dandong, or all)'
+        description: 'Compile Target (liaoning or dandong)'
         required: true
         default: 'dandong'
         type: choice
         options:
           - dandong
           - liaoning
-          - china
-          - all
+
+permissions:
+  contents: write
 
 jobs:
   build-maps:
@@ -183,17 +184,18 @@ jobs:
       - name: Install Osmium-Tool
         run: sudo apt-get update && sudo apt-get install -y osmium-tool
 
-      - name: Download Planetiler
+      - name: Prepare Workspace and Download Data
         run: |
-          mkdir -p bin
+          mkdir -p bin data/sources dist
           wget -q https://github.com/onthegomap/planetiler/releases/latest/download/planetiler.jar -O bin/planetiler.jar
+          java -jar bin/planetiler.jar --download
 
       - name: Compile - Dandong MBTiles
         if: github.event.inputs.map_target == 'dandong'
         run: |
-          wget -O liaoning.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
-          osmium extract --bbox 123.38,39.73,125.70,41.20 liaoning.osm.pbf -o dandong.osm.pbf --strategy=complete_ways
-          java -Xmx4g -jar bin/planetiler.jar --osm-path=dandong.osm.pbf --output=dist/dandong.mbtiles`
+          wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
+          osmium extract --bbox 123.38,39.73,125.70,41.20 data/liaoning-latest.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways
+          java -Xmx4g -jar bin/planetiler.jar --download --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles`
       };
     }
     if (activeFile === 'script') {

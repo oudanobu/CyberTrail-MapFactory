@@ -60,8 +60,14 @@ export default function TerminalLogs({ selectedTarget, customBbox }: TerminalLog
       { text: `${timestamp()} ⬇️ Resolving Planetiler binaries...`, type: 'info', delay: 1800 },
       { text: `GET https://github.com/onthegomap/planetiler/releases/latest/download/planetiler.jar -> verified SHA256`, type: 'metric', delay: 2100 },
       { text: `Successfully pre-loaded planetiler.jar (v0.8.2, 58 MB)`, type: 'info', delay: 2300 },
-      { text: `${timestamp()} 🌐 Targeted map select: "${selectedTarget.key.toUpperCase()}"`, type: 'info', delay: 2600 },
-      { text: `Source URL: ${selectedTarget.sourceUrl}`, type: 'metric', delay: 2800 },
+      { text: `${timestamp()} ⬇️ Downloading Planetiler OpenMapTiles auxiliary data...`, type: 'info', delay: 2400 },
+      { text: `java -jar bin/planetiler.jar --download`, type: 'metric', delay: 2450 },
+      { text: `Downloading data/sources/natural_earth_vector.sqlite.zip...`, type: 'metric', delay: 2500 },
+      { text: `Downloading data/sources/water-polygons-split-3857.zip...`, type: 'metric', delay: 2550 },
+      { text: `Downloading data/sources/lake_centerline.shp.zip...`, type: 'metric', delay: 2600 },
+      { text: `✅ Download complete.`, type: 'success', delay: 2800 },
+      { text: `${timestamp()} 🌐 Targeted map select: "${selectedTarget.key.toUpperCase()}"`, type: 'info', delay: 2900 },
+      { text: `Source URL: ${selectedTarget.sourceUrl}`, type: 'metric', delay: 3100 },
     ];
 
     const condItem: SeqEntry = (selectedTarget.key === 'dandong' || selectedTarget.key === 'kuandian' || selectedTarget.key === 'shenyang' || selectedTarget.key === 'tokyo') ? 

@@ -7,15 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       map_target:
-        description: 'Compile Target (china, liaoning, dandong, or all)'
+        description: 'Compile Target (liaoning or dandong)'
         required: true
         default: 'dandong'
         type: choice
         options:
           - dandong
           - liaoning
-          - china
-          - all
 
 permissions:
   contents: write
@@ -46,8 +44,13 @@ jobs:
 
       - name: Prepare Workspace and Output Directories
         run: |
-          mkdir -p data
+          mkdir -p data/sources
           mkdir -p dist
+
+      - name: Download Planetiler Auxiliary Data
+        run: |
+          echo "===> Downloading auxiliary data (Natural Earth, water polygons, etc.)"
+          java -jar bin/planetiler.jar --download
 
       - name: Establish Target Selection
         id: target-selector
@@ -64,22 +67,15 @@ jobs:
           echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "Selected Compilation Target: $TARGET"
 
-      - name: Compile - China MBTiles
-        if: steps.target-selector.outputs.selected_target == 'china' || steps.target-selector.outputs.selected_target == 'all'
-        run: |
-          echo "===> Compiling China MBTiles..."
-          wget -O data/china-latest.osm.pbf https://download.geofabrik.de/asia/china-latest.osm.pbf
-          java -Xmx6g -jar bin/planetiler.jar --osm-path=data/china-latest.osm.pbf --output=dist/china.mbtiles --nodemap-type=sparse --force
-
       - name: Compile - Liaoning MBTiles
-        if: steps.target-selector.outputs.selected_target == 'liaoning' || steps.target-selector.outputs.selected_target == 'all'
+        if: steps.target-selector.outputs.selected_target == 'liaoning'
         run: |
           echo "===> Compiling Liaoning MBTiles..."
           wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
-          java -Xmx6g -jar bin/planetiler.jar --osm-path=data/liaoning-latest.osm.pbf --output=dist/liaoning.mbtiles --nodemap-type=sparse --force
+          java -Xmx6g -jar bin/planetiler.jar --download --osm-path=data/liaoning-latest.osm.pbf --output=dist/liaoning.mbtiles --nodemap-type=sparse --force
 
       - name: Compile - Dandong MBTiles
-        if: steps.target-selector.outputs.selected_target == 'dandong' || steps.target-selector.outputs.selected_target == 'all'
+        if: steps.target-selector.outputs.selected_target == 'dandong'
         run: |
           echo "===> Compiling Dandong MBTiles..."
           # Download Liaoning source as Dandong must be cropped from it
@@ -90,7 +86,7 @@ jobs:
           osmium extract --bbox 123.38,39.73,125.70,41.20 data/liaoning-latest.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways --overwrite
           
           # Compile cropped dandong.osm.pbf with Planetiler
-          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles --nodemap-type=sparse --force
+          java -Xmx4g -jar bin/planetiler.jar --download --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles --nodemap-type=sparse --force
 
       - name: Check Built Visual Files
         run: |
