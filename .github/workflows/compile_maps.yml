@@ -52,11 +52,6 @@ jobs:
           mkdir -p data/sources dist maps/admin_boundaries
           chmod +x maps/crop_*.sh || true
 
-      - name: Download Planetiler Auxiliary Data
-        run: |
-          echo "===> Downloading auxiliary data (Natural Earth, water polygons, etc.)"
-          java -jar bin/planetiler.jar --download
-
       - name: Establish Target Selection
         id: target-selector
         run: |
