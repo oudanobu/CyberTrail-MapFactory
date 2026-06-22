@@ -49,7 +49,7 @@ jobs:
 
       - name: Prepare Workspace and Output Directories
         run: |
-          mkdir -p data/sources dist maps/admin_boundaries
+          mkdir -p data/sources dist
           chmod +x maps/crop_*.sh || true
 
       - name: Download Planetiler Auxiliary Data
