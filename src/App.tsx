@@ -188,6 +188,7 @@ jobs:
         run: |
           mkdir -p bin data/sources dist
           wget -q https://github.com/onthegomap/planetiler/releases/latest/download/planetiler.jar -O bin/planetiler.jar
+          java -jar bin/planetiler.jar --download
 
       - name: Compile - Dandong MBTiles
         if: github.event.inputs.map_target == 'dandong'
