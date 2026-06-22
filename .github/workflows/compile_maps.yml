@@ -62,7 +62,7 @@ jobs:
         run: |
           TARGET="${{ github.event.inputs.map_target }}"
           if [ -z "$TARGET" ]; then
-            TARGET="dandong_detail"
+            TARGET="all"
           fi
           echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "Selected Compilation Target: $TARGET"
