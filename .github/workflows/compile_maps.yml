@@ -56,16 +56,69 @@ jobs:
 
       - name: Start TileServer-GL Container
         run: |
-          echo "===> Pulling TileServer-GL Docker image..."
-          docker pull maptiler/tileserver-gl:latest
-          
           echo "===> Creating data directory and fetching base vector package..."
           mkdir -p data
           
           # Attempt to retrieve a reliable vector source file covering the region
-          wget -q -nc -O data/source_vector.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/source_vector_latest.mbtiles" || \
-          wget -q -nc -O data/source_vector.mbtiles "https://github.com/cyber-trail/maps/releases/download/v1.0.0/source_vector.mbtiles" || \
-          sqlite3 data/source_vector.mbtiles "CREATE TABLE tiles (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER, tile_data BLOB); CREATE TABLE metadata (name TEXT, value TEXT);"
+          wget -q -O data/source_vector.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/source_vector_latest.mbtiles" || \
+          wget -q -O data/source_vector.mbtiles "https://github.com/cyber-trail/maps/releases/download/v1.0.0/source_vector.mbtiles"
+          
+          echo "===> 【第一阶段：源数据验证】 (Stage 1: Source Data Verification)"
+          FILE="data/source_vector.mbtiles"
+          
+          # 1. Check if file exists
+          if [ ! -f "$FILE" ]; then
+            echo "[-] Critical Error: source_vector.mbtiles file does not exist (download failed)!"
+            exit 1
+          fi
+          
+          # 2. Check file size is >= 1MB (1,000,000 bytes)
+          FILE_SIZE=$(wc -c < "$FILE")
+          echo "  - File size: $FILE_SIZE bytes"
+          if [ "$FILE_SIZE" -lt 1000000 ]; then
+            echo "[-] Critical Error: Downloaded file size ($FILE_SIZE bytes) is too small (less than 1MB)!"
+            echo "[-] This file is likely empty, a placeholder, or an HTML error page."
+            exit 1
+          fi
+          
+          # 3. Check SQLite structure (metadata and tiles tables must exist)
+          TABLES_COUNT=$(sqlite3 "$FILE" "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('tiles', 'metadata');" 2>/dev/null || echo "0")
+          echo "  - Matching schema tables found: $TABLES_COUNT"
+          if [ "$TABLES_COUNT" -ne 2 ]; then
+            echo "[-] Critical Error: SQLite database structure is invalid. Missing 'tiles' or 'metadata' tables!"
+            exit 1
+          fi
+          
+          # 4. Check metadata values
+          echo "  - Metadata records:"
+          sqlite3 "$FILE" "SELECT * FROM metadata;" || echo "[-] Failed to select from metadata"
+          
+          # Verify format=pbf
+          FORMAT=$(sqlite3 "$FILE" "SELECT value FROM metadata WHERE name='format';" 2>/dev/null || echo "none")
+          echo "  - Vector Map Format: '$FORMAT'"
+          if [ "$FORMAT" != "pbf" ]; then
+            echo "[-] Critical Error: source_vector.mbtiles format is not 'pbf' (format is '$FORMAT')."
+            echo "[-] TileServer-GL requires a vector MBTiles containing Mapbox Vector Tiles (pbf format)."
+            exit 1
+          fi
+          
+          # 5. Check real tile count (must be >= 1000)
+          TILES_COUNT=$(sqlite3 "$FILE" "SELECT COUNT(*) FROM tiles;" 2>/dev/null || echo "0")
+          echo "  - Total vector tiles found in database: $TILES_COUNT"
+          if [ "$TILES_COUNT" -lt 1000 ]; then
+            echo "[-] Critical Error: source_vector.mbtiles contains insufficient vector tiles ($TILES_COUNT < 1000)!"
+            echo "[-] Aborting workflow as the data source is empty or truncated."
+            exit 1
+          fi
+          
+          # 6. Check sample tile sizes (not empty BLOBs)
+          echo "  - Sample vector tile sizes (LIMIT 10):"
+          sqlite3 "$FILE" "SELECT length(tile_data) FROM tiles LIMIT 10;" || echo "[-] Failed to query sample tile sizes"
+          
+          echo "[+] Stage 1 Verification Passed!"
+          
+          echo "===> Pulling TileServer-GL Docker image..."
+          docker pull maptiler/tileserver-gl:latest
           
           echo "===> Starting TileServer-GL..."
           docker run -d --name tileserver -p 8080:8080 -v $(pwd)/data:/data maptiler/tileserver-gl:latest --mbtiles /data/source_vector.mbtiles
@@ -75,7 +128,7 @@ jobs:
           for i in {1..30}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 2 http://localhost:8080/ || echo "offline")
             if [ "$STATUS" = "200" ]; then
-              echo "[+] TileServer-GL is fully online, healthy, and serving on port 8080!"
+              echo "[+] TileServer-GL port 8080 is reachable!"
               HEALTHY=true
               break
             fi
@@ -93,8 +146,26 @@ jobs:
           echo "=== Active Container List ==="
           docker ps
           
-          echo "=== Querying Served Styles ==="
-          curl -s http://localhost:8080/styles || echo "[-] Failed to fetch styles directory"
+          echo "===> 【第二阶段：TileServer-GL 验证】 (Stage 2: TileServer-GL Verification)"
+          
+          echo "--- Querying Root Endpoint ---"
+          curl -s -I http://localhost:8080/ || echo "[-] Failed to fetch root endpoint"
+          
+          echo "--- Querying Data Sources ---"
+          curl -s http://localhost:8080/data || echo "[-] Failed to fetch data sources"
+          
+          echo "--- Querying Styles ---"
+          STYLES_RESP=$(curl -s http://localhost:8080/styles || echo "404")
+          echo "Styles response: $STYLES_RESP"
+          
+          if [[ "$STYLES_RESP" == *"Cannot GET"* || "$STYLES_RESP" == *"404"* || "$STYLES_RESP" == "" ]]; then
+            echo "[-] Critical Error: TileServer-GL does not have any active style configured or /styles returned an error!"
+            echo "=== Container logs ==="
+            docker logs tileserver || true
+            exit 1
+          fi
+          
+          echo "[+] Stage 2 Verification Passed! TileServer-GL is fully configured with active styles."
 
       - name: Execute Unified Map Compilation and Optimization Pipeline
         run: |
