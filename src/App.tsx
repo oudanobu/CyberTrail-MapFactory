@@ -47,27 +47,27 @@ const MAP_TARGETS: MapTarget[] = [
   },
   {
     key: "liaoning",
-    name: "Liaoning Province",
-    chineseName: "辽宁全境图",
+    name: "Dandong Overview",
+    chineseName: "丹东概况图",
     sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
-    bbox: [118.84, 38.71, 125.79, 43.43],
-    description: "Regional provincial scale containing key roads, primary transit lines, water bodies, and county-level boundaries (Zoom 9-11) in Raster PNG format.",
+    bbox: [123.38, 39.73, 125.70, 41.20],
+    description: "Regional overview containing roads, transit lines, and county-level boundaries for Dandong region (Zoom 9-11) in Raster PNG format.",
     parent: "china_overview",
     layerType: "province",
-    estimatedSize: "412.5 MB",
-    compileTimeSec: 260
+    estimatedSize: "45.2 MB",
+    compileTimeSec: 80
   },
   {
     key: "dandong",
-    name: "Consolidated Dandong",
+    name: "Dandong Detailed",
     chineseName: "丹东全域详图",
     sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
     bbox: [123.38, 39.73, 125.70, 41.20],
-    description: "Consolidated high-resolution detailed tileset (Zoom 12-16, optional 12-17) covering Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian merged into a single database.",
+    description: "High-resolution detailed tileset (Zoom 12-16) covering Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian in Raster PNG format.",
     parent: "liaoning",
     layerType: "city",
-    estimatedSize: "1.12 GB",
-    compileTimeSec: 480
+    estimatedSize: "320.5 MB",
+    compileTimeSec: 350
   }
 ];
 

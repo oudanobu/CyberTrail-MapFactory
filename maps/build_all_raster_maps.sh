@@ -107,16 +107,16 @@ if [ "$TARGET" = "world" ] || [ "$TARGET" = "all" ]; then
   compile_and_optimize_mbtiles "world" "World Basemap" "-180,-85,180,85" 0 5
 fi
 
-if [ "$TARGET" = "china_overview" ] || [ "$TARGET" = "all" ]; then
+if [ "$TARGET" = "china" ] || [ "$TARGET" = "china_overview" ] || [ "$TARGET" = "all" ]; then
   compile_and_optimize_mbtiles "china" "China Overview" "73.66,18.16,135.05,53.56" 6 8
 fi
 
 if [ "$TARGET" = "liaoning" ] || [ "$TARGET" = "all" ]; then
-  compile_and_optimize_mbtiles "liaoning" "Liaoning Province" "118.84,38.71,125.79,43.43" 9 11
+  compile_and_optimize_mbtiles "liaoning" "Dandong Overview" "123.38,39.73,125.70,41.20" 9 11
 fi
 
 if [ "$TARGET" = "dandong" ] || [ "$TARGET" = "all" ]; then
-  compile_and_optimize_mbtiles "dandong" "Consolidated Dandong Region" "123.38,39.73,125.70,41.20" 12 16
+  compile_and_optimize_mbtiles "dandong" "Dandong Detailed" "123.38,39.73,125.70,41.20" 12 16
 fi
 
 echo ">>> [FINAL METRICS] Final built map packages:"
