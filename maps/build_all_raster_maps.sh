@@ -108,7 +108,7 @@ if [ "$TARGET" = "world" ] || [ "$TARGET" = "all" ]; then
 fi
 
 if [ "$TARGET" = "china_overview" ] || [ "$TARGET" = "all" ]; then
-  compile_and_optimize_mbtiles "china_overview" "China Overview" "73.66,18.16,135.05,53.56" 6 8
+  compile_and_optimize_mbtiles "china" "China Overview" "73.66,18.16,135.05,53.56" 6 8
 fi
 
 if [ "$TARGET" = "liaoning" ] || [ "$TARGET" = "all" ]; then
