@@ -133,7 +133,7 @@ jobs:
         run: |
           mkdir -p dist data/sources maps
           # Run Slicing & optimization
-          sh maps/crop_dandong.sh
+          bash maps/crop_dandong.sh
           python3 maps/raster_optimizer.py dist/dandong.mbtiles`
       };
     }
@@ -145,7 +145,7 @@ jobs:
 # CyberTrail-MapFactory: Crop Dandong Region (Consolidated BBOX)
 # Covers: Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian
 
-set -eo pipefail
+set -euo pipefail
 mkdir -p data
 
 BBOX="123.38,39.73,125.70,41.20"

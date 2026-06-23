@@ -81,7 +81,7 @@ jobs:
         if: steps.target-selector.outputs.selected_target == 'liaoning' || steps.target-selector.outputs.selected_target == 'all'
         run: |
           echo "===> Slicing and Generating liaoning.mbtiles (Zoom 9-11, Raster PNG)..."
-          sh maps/crop_liaoning.sh
+          bash maps/crop_liaoning.sh
           # Using tilelive/mapnik or headless rasterizer to generate raster MBTiles from cropped liaoning.osm.pbf
           # Here we emulate/run the tile generator engine
           wget -q -O dist/liaoning.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/liaoning_raster_z9_z11.mbtiles" || \
@@ -93,7 +93,7 @@ jobs:
         if: steps.target-selector.outputs.selected_target == 'dandong' || steps.target-selector.outputs.selected_target == 'all'
         run: |
           echo "===> Slicing and Generating consolidated dandong.mbtiles (Zoom 12-16/17, Raster PNG)..."
-          sh maps/crop_dandong.sh
+          bash maps/crop_dandong.sh
           # Consolidated Dandong contains: Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian
           # Emulate/run raster tile render pipeline for local detailed grid
           wget -q -O dist/dandong.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/dandong_raster_z12_z16.mbtiles" || \

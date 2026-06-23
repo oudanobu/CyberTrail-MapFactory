@@ -2,7 +2,7 @@
 # CyberTrail-MapFactory: Crop Dandong Region (Consolidated BBOX)
 # Covers: Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian
 
-set -eo pipefail
+set -euo pipefail
 mkdir -p data
 
 # Ensure osmium is installed

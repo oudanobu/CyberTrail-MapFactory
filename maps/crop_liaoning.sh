@@ -1,5 +1,5 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 mkdir -p data
 
 if [ ! -f "data/liaoning-latest.osm.pbf" ]; then
