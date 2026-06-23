@@ -54,53 +54,9 @@ jobs:
           echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "Selected Compilation Target: $TARGET"
 
-      - name: Compile - world.mbtiles (Zoom 0-5)
-        if: steps.target-selector.outputs.selected_target == 'world' || steps.target-selector.outputs.selected_target == 'all'
+      - name: Execute Unified Map Compilation and Optimization Pipeline
         run: |
-          echo "===> Generating world.mbtiles (Zoom 0-5, Raster PNG)..."
-          # Download low-resolution natural earth raster maps or osm-basemaps
-          # For demonstration and production accuracy, we pull pre-rendered global layers
-          wget -q -O dist/world.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/world_raster_z0_z5.mbtiles" || \
-          sqlite3 dist/world.mbtiles "CREATE TABLE tiles (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER, tile_data BLOB); CREATE TABLE metadata (name TEXT, value TEXT);"
-          
-          # Run Optimizer to compress PNG8 & deduplicate
-          python3 maps/raster_optimizer.py dist/world.mbtiles
-
-      - name: Compile - china_overview.mbtiles (Zoom 6-8)
-        if: steps.target-selector.outputs.selected_target == 'china_overview' || steps.target-selector.outputs.selected_target == 'all'
-        run: |
-          echo "===> Slicing and Generating china_overview.mbtiles (Zoom 6-8, Raster PNG)..."
-          # Download regional basemap
-          wget -q -O dist/china_overview.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/china_raster_z6_z8.mbtiles" || \
-          sqlite3 dist/china_overview.mbtiles "CREATE TABLE tiles (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER, tile_data BLOB); CREATE TABLE metadata (name TEXT, value TEXT);"
-          
-          # Run Optimizer to compress PNG8 & deduplicate
-          python3 maps/raster_optimizer.py dist/china_overview.mbtiles
-
-      - name: Compile - liaoning.mbtiles (Zoom 9-11)
-        if: steps.target-selector.outputs.selected_target == 'liaoning' || steps.target-selector.outputs.selected_target == 'all'
-        run: |
-          echo "===> Slicing and Generating liaoning.mbtiles (Zoom 9-11, Raster PNG)..."
-          bash maps/crop_liaoning.sh
-          # Using tilelive/mapnik or headless rasterizer to generate raster MBTiles from cropped liaoning.osm.pbf
-          # Here we emulate/run the tile generator engine
-          wget -q -O dist/liaoning.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/liaoning_raster_z9_z11.mbtiles" || \
-          sqlite3 dist/liaoning.mbtiles "CREATE TABLE tiles (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER, tile_data BLOB); CREATE TABLE metadata (name TEXT, value TEXT);"
-          
-          python3 maps/raster_optimizer.py dist/liaoning.mbtiles
-
-      - name: Compile - dandong.mbtiles (Zoom 12-16/17)
-        if: steps.target-selector.outputs.selected_target == 'dandong' || steps.target-selector.outputs.selected_target == 'all'
-        run: |
-          echo "===> Slicing and Generating consolidated dandong.mbtiles (Zoom 12-16/17, Raster PNG)..."
-          bash maps/crop_dandong.sh
-          # Consolidated Dandong contains: Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian
-          # Emulate/run raster tile render pipeline for local detailed grid
-          wget -q -O dist/dandong.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/dandong_raster_z12_z16.mbtiles" || \
-          sqlite3 dist/dandong.mbtiles "CREATE TABLE tiles (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER, tile_data BLOB); CREATE TABLE metadata (name TEXT, value TEXT);"
-          
-          # Perform pixel-perfect PNG8 compression, deduplication, and SQLite VACUUM optimization
-          python3 maps/raster_optimizer.py dist/dandong.mbtiles
+          bash maps/build_all_raster_maps.sh "${{ steps.target-selector.outputs.selected_target }}"
 
       - name: Check Final Raster Map Archives
         run: |
