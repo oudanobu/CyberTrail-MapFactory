@@ -70,18 +70,18 @@ export default function TerminalLogs({ selectedTarget, customBbox }: TerminalLog
       { text: `Source URL: ${selectedTarget.sourceUrl}`, type: 'metric', delay: 3100 },
     ];
 
-    const condItem: SeqEntry = (selectedTarget.key === 'dandong' || selectedTarget.key === 'kuandian' || selectedTarget.key === 'shenyang' || selectedTarget.key === 'tokyo') ? 
+    const condItem: SeqEntry = (selectedTarget.key === 'dandong') ? 
       { text: `${timestamp()} 🛠️ Slicing target bounds detected! Preparing osmium-tool extract.`, type: 'warn', delay: 3100 } :
       { text: `${timestamp()} 🏎️ Slicing not requested for full scope. Ready for direct bulk compile!`, type: 'success', delay: 3100 };
 
-    const sliceSequence: SeqEntry[] = (selectedTarget.key === 'dandong' || selectedTarget.key === 'kuandian' || selectedTarget.key === 'shenyang' || selectedTarget.key === 'tokyo') ? [
+    const sliceSequence: SeqEntry[] = (selectedTarget.key === 'dandong') ? [
       { text: `${timestamp()} 📦 Down-sampling raw parent dataset: "${selectedTarget.parent}.osm.pbf"`, type: 'info', delay: 3500 },
       { text: `Wget fetch -> ${selectedTarget.sourceUrl} ...`, type: 'metric', delay: 3800 },
       { text: `Successfully downloaded parent archive (152 MB, Speed: 64.2 MB/s)`, type: 'success', delay: 4200 },
       { text: `${timestamp()} ⚔️ Slicing query bbox: [${bboxStr}] using "complete_ways" strategy...`, type: 'info', delay: 4600 },
-      { text: `osmium extract --bbox ${bboxStr} parent.osm.pbf -o target_cropped.osm.pbf --strategy=complete_ways`, type: 'metric', delay: 4900 },
+      { text: `osmium extract --bbox ${bboxStr} data/liaoning.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways`, type: 'metric', delay: 4900 },
       { text: `osmium parse: Nodes read: 8,410,240 | Ways read: 942,510 | Relations: 24,194`, type: 'info', delay: 5300 },
-      { text: `osmium compile: Output target_cropped.osm.pbf successfully written. Saved: ~${selectedTarget.estimatedSize}`, type: 'success', delay: 5800 },
+      { text: `osmium compile: Output data/dandong.osm.pbf successfully written. Saved: ~11.6 MB`, type: 'success', delay: 5800 },
     ] : [
       { text: `${timestamp()} 📦 Fetching bulk OSM region dataset directly...`, type: 'info', delay: 3500 },
       { text: `Aria2 parallel download -> ${selectedTarget.sourceUrl} ...`, type: 'metric', delay: 3900 },
@@ -89,20 +89,22 @@ export default function TerminalLogs({ selectedTarget, customBbox }: TerminalLog
     ];
 
     const compileSequence: SeqEntry[] = [
-      { text: `${timestamp()} 🚀 Executing Planetiler Vector Stream Compression...`, type: 'info', delay: 6200 },
-      { text: `java -Xmx4g -jar planetiler.jar --osm-path=target.osm.pbf --output=dist/${selectedTarget.key}.mbtiles${selectedTarget.key === 'china_overview' ? ' --maxzoom=6' : ''} --force`, type: 'metric', delay: 6505 },
-      { text: `[Tile-Engine] Stage 1: Reading nodes and storing locations (NodeMap Array)...`, type: 'info', delay: 6900 },
-      { text: `[Tile-Engine] Processed: 1,500,000 nodes/s (Memory utilization: 42%)`, type: 'metric', delay: 7200 },
-      { text: `[Tile-Engine] Stage 2: Reading ways and relations (Multipolygons)...`, type: 'info', delay: 7500 },
-      { text: `[Tile-Engine] Stage 3: Rendering tiles and grouping features (Z0 - Z14)...`, type: 'info', delay: 7800 },
-      { text: `[Tile-Engine] Completed zooms: z0-z4 (0.1s) | z5-z9 (0.4s) | z10-z12 (1.2s) | z13-z14 (3.1s)`, type: 'metric', delay: 8200 },
-      { text: `[Tile-Engine] Stage 4: Compacting database structures and writing indices...`, type: 'info', delay: 8500 },
-      { text: `${timestamp()} 🏁 Planetiler successfully generated Vector Map!`, type: 'success', delay: 8900 },
-      { text: `Output written: dist/${selectedTarget.key}.mbtiles (${selectedTarget.estimatedSize})`, type: 'metric', delay: 9200 },
-      { text: `Time elapsed: ${selectedTarget.compileTimeSec} seconds in sandbox runner`, type: 'metric', delay: 9350 },
-      { text: `${timestamp()} 🔗 Creating Release metadata maps-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${new Date().toLocaleTimeString('en-US', {hour12:false}).slice(0,5).replace(':','')}`, type: 'info', delay: 9600 },
-      { text: `gh release create maps-20260621-1130 dist/${selectedTarget.key}.mbtiles --title "CyberTrail Map Production"`, type: 'metric', delay: 9800 },
-      { text: `🎉 [SUCCESS] Map successfully published to GitHub Release pipeline and ready for Cybertrail import!`, type: 'success', delay: 10100 },
+      { text: `${timestamp()} 🚀 Executing Cartographic Rasterization Engine...`, type: 'info', delay: 6200 },
+      { text: `Rendering tileset zoom levels: ${selectedTarget.key === 'world' ? 'Z0 - Z5' : selectedTarget.key === 'china_overview' ? 'Z6 - Z8' : selectedTarget.key === 'liaoning' ? 'Z9 - Z11' : 'Z12 - Z16'}`, type: 'metric', delay: 6505 },
+      { text: `[Raster-Engine] Stage 1: Initializing headless Mapnik renderer with OSM style sheet...`, type: 'info', delay: 6900 },
+      { text: `[Raster-Engine] Stage 2: Spatially querying osm features & drawing bitmap grids...`, type: 'info', delay: 7500 },
+      { text: `[Raster-Engine] Stage 3: Packaging rendered PNG tiles into SQLite .mbtiles container...`, type: 'info', delay: 8200 },
+      { text: `${timestamp()} 🏁 Rasterization completed! Raw MBTiles size: ~1.85 GB`, type: 'success', delay: 8900 },
+      { text: `${timestamp()} ⚙️ Launching Python raster_optimizer.py post-processing...`, type: 'info', delay: 9200 },
+      { text: `python3 maps/raster_optimizer.py dist/${selectedTarget.key}.mbtiles`, type: 'metric', delay: 9400 },
+      { text: `[Optimizer] Stage 1: Converting flat MBTiles structure into normalized schema...`, type: 'info', delay: 9600 },
+      { text: `[Optimizer] Stage 2: Compressing tiles to PNG8 format (P mode with adaptive color palette)...`, type: 'info', delay: 9900 },
+      { text: `[Optimizer] Stage 3: Deduplicating redundant visual cells (land / oceans / empty fields)...`, type: 'info', delay: 10200 },
+      { text: `[Optimizer] Stage 4: Compacting database indices & running full SQLite VACUUM...`, type: 'info', delay: 10500 },
+      { text: `[Optimizer] SUCCESS: Saved 63.8% disk space! Final file size: ${selectedTarget.estimatedSize}`, type: 'success', delay: 10800 },
+      { text: `${timestamp()} 🔗 Creating Release metadata maps-raster-${new Date().toISOString().slice(0,10).replace(/-/g,'')}`, type: 'info', delay: 11100 },
+      { text: `gh release create maps-raster-20260623 dist/${selectedTarget.key}.mbtiles --title "CyberTrail Raster Maps"`, type: 'metric', delay: 11300 },
+      { text: `🎉 [SUCCESS] Offline map package published successfully to GitHub release pipeline. Fully compatible with client.`, type: 'success', delay: 11500 },
     ];
 
     const sequence: SeqEntry[] = [

@@ -6,26 +6,16 @@ import {
   FileCode,
   Globe,
   Database,
-  Calendar,
   Sparkles,
-  Info,
-  Sliders,
-  Play,
   Check,
   Copy,
-  PlusCircle,
-  Code,
   Github,
   BookOpen,
-  FolderArchive,
-  Workflow,
   MapPin,
-  Map,
   ShieldCheck,
   ChevronRight,
   HelpCircle,
-  FileText,
-  WorkflowIcon
+  Code
 } from "lucide-react";
 import { MapTarget } from "./types";
 import InteractiveMap from "./components/InteractiveMap";
@@ -33,108 +23,59 @@ import TerminalLogs from "./components/TerminalLogs";
 import GisAssistant from "./components/GisAssistant";
 
 const MAP_TARGETS: MapTarget[] = [
-  // Phase 1 scope
   {
-    key: "dandong",
-    name: "Dandong City",
-    chineseName: "辽宁省丹东市",
-    sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
-    bbox: [123.38, 39.73, 125.7, 41.2],
-    description: "Dynamic localized border municipality. Slices boundaries from Liaoning parent dataset.",
-    parent: "liaoning",
-    layerType: "city",
-    estimatedSize: "11.6 MB",
+    key: "world",
+    name: "World Basemap",
+    chineseName: "全球底图",
+    sourceUrl: "https://download.geofabrik.de/index.html",
+    bbox: [-180.0, -85.0, 180.0, 85.0],
+    description: "Low-resolution global overview containing borders, major water bodies, and continental labels (Zoom 0-5) in Raster PNG format.",
+    layerType: "country",
+    estimatedSize: "35.4 MB",
     compileTimeSec: 45
-  },
-  {
-    key: "liaoning",
-    name: "Liaoning Province",
-    chineseName: "辽宁省",
-    sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
-    bbox: [118.84, 38.71, 125.79, 43.43],
-    description: "Provincial target scope covering Northeast regional transport grids directly.",
-    parent: "china",
-    layerType: "province",
-    estimatedSize: "148 MB",
-    compileTimeSec: 280
   },
   {
     key: "china_overview",
     name: "China Overview",
-    chineseName: "中国概况底图",
+    chineseName: "中国概况图",
     sourceUrl: "https://download.geofabrik.de/asia/china-latest.osm.pbf",
     bbox: [73.66, 18.16, 135.05, 53.56],
-    description: "Country-wide overview map (zoom 0-6). Contains admin boundaries, major cities, water, and highways. Not for navigation.",
+    description: "Medium-resolution national coverage containing administrative lines, national expressways, and primary capital nodes (Zoom 6-8) in Raster PNG format.",
     layerType: "country",
-    estimatedSize: "55 MB",
-    compileTimeSec: 150
-  },
-  // Phase 2 scope
-  {
-    key: "kuandian",
-    name: "Kuandian County",
-    chineseName: "宽甸满族自治县",
-    sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
-    bbox: [124.35, 40.35, 125.72, 41.15],
-    description: "Autonomous county nested under Dandong. Future high-resolution subcrop target.",
-    parent: "liaoning",
-    layerType: "county",
-    estimatedSize: "2.1 MB",
-    compileTimeSec: 18
+    estimatedSize: "125.8 MB",
+    compileTimeSec: 120
   },
   {
-    key: "shenyang",
-    name: "Shenyang City",
-    chineseName: "辽宁省沈阳市",
+    key: "liaoning",
+    name: "Liaoning Province",
+    chineseName: "辽宁全境图",
     sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
-    bbox: [122.42, 41.19, 123.81, 43.04],
-    description: "Capital of Liaoning Province, extremely high density transit connectivity.",
+    bbox: [118.84, 38.71, 125.79, 43.43],
+    description: "Regional provincial scale containing key roads, primary transit lines, water bodies, and county-level boundaries (Zoom 9-11) in Raster PNG format.",
+    parent: "china_overview",
+    layerType: "province",
+    estimatedSize: "412.5 MB",
+    compileTimeSec: 260
+  },
+  {
+    key: "dandong",
+    name: "Consolidated Dandong",
+    chineseName: "丹东全域详图",
+    sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
+    bbox: [123.38, 39.73, 125.70, 41.20],
+    description: "Consolidated high-resolution detailed tileset (Zoom 12-16, optional 12-17) covering Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian merged into a single database.",
     parent: "liaoning",
     layerType: "city",
-    estimatedSize: "32.4 MB",
-    compileTimeSec: 90
-  },
-  {
-    key: "tokyo",
-    name: "Tokyo Metro",
-    chineseName: "日本国東京都",
-    sourceUrl: "https://download.geofabrik.de/asia/japan-latest.osm.pbf",
-    bbox: [138.94, 35.52, 139.92, 35.82],
-    description: "Metropolitan capital expansion region of Japan.",
-    parent: "japan",
-    layerType: "city",
-    estimatedSize: "44.1 MB",
-    compileTimeSec: 110
-  },
-  {
-    key: "japan",
-    name: "Japan Core",
-    chineseName: "日本国",
-    sourceUrl: "https://download.geofabrik.de/asia/japan-latest.osm.pbf",
-    bbox: [128.6, 30.0, 146.0, 45.6],
-    description: "Full country domain package for Japanese island archipelago.",
-    layerType: "country",
-    estimatedSize: "1.8 GB",
-    compileTimeSec: 3500
-  },
-  {
-    key: "usa",
-    name: "United States",
-    chineseName: "美国本土",
-    sourceUrl: "https://download.geofabrik.de/north-america/us-latest.osm.pbf",
-    bbox: [-124.8, 24.4, -66.9, 49.4],
-    description: "Continental US bulk vector schema covering multiple states.",
-    layerType: "country",
-    estimatedSize: "8.6 GB",
-    compileTimeSec: 14400
+    estimatedSize: "1.12 GB",
+    compileTimeSec: 480
   }
 ];
 
 export default function App() {
-  const [selectedTarget, setSelectedTarget] = useState<MapTarget>(MAP_TARGETS[0]);
-  const [activeBbox, setActiveBbox] = useState<[number, number, number, number]>(MAP_TARGETS[0].bbox);
+  const [selectedTarget, setSelectedTarget] = useState<MapTarget>(MAP_TARGETS[3]); // Default to Dandong
+  const [activeBbox, setActiveBbox] = useState<[number, number, number, number]>(MAP_TARGETS[3].bbox);
   const [activeTab, setActiveTab] = useState<'editor' | 'cli' | 'guide'>('editor');
-  const [activeFile, setActiveFile] = useState<'workflow' | 'script' | 'json'>('workflow');
+  const [activeFile, setActiveFile] = useState<'workflow' | 'script' | 'optimizer' | 'json'>('workflow');
   const [copiedTextKey, setCopiedTextKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -152,7 +93,7 @@ export default function App() {
       return {
         name: ".github/workflows/compile_maps.yml",
         language: "yaml",
-        code: `name: Compile Map Pipeline
+        code: `name: Compile Raster PNG Map Pipeline
 
 on:
   push:
@@ -160,13 +101,16 @@ on:
   workflow_dispatch:
     inputs:
       map_target:
-        description: 'Compile Target (liaoning or dandong)'
+        description: 'Compile Target (world, china_overview, liaoning, dandong, or all)'
         required: true
         default: 'dandong'
         type: choice
         options:
-          - dandong
+          - world
+          - china_overview
           - liaoning
+          - dandong
+          - all
 
 permissions:
   contents: write
@@ -176,26 +120,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-python@v5
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          python-version: '3.10'
 
-      - name: Install Osmium-Tool
-        run: sudo apt-get update && sudo apt-get install -y osmium-tool
-
-      - name: Prepare Workspace and Download Data
+      - name: Install GIS Dependencies
         run: |
-          mkdir -p bin data/sources dist
-          wget -q https://github.com/onthegomap/planetiler/releases/latest/download/planetiler.jar -O bin/planetiler.jar
-          java -jar bin/planetiler.jar --download
+          sudo apt-get update && sudo apt-get install -y osmium-tool sqlite3
+          pip3 install Pillow --break-system-packages
 
-      - name: Compile - Dandong MBTiles
-        if: github.event.inputs.map_target == 'dandong'
+      - name: Slicing and Generating Raster MBTiles
         run: |
-          wget -O data/liaoning-latest.osm.pbf https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf
-          osmium extract --bbox 123.38,39.73,125.70,41.20 data/liaoning-latest.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways
-          java -Xmx4g -jar bin/planetiler.jar --osm-path=data/dandong.osm.pbf --output=dist/dandong.mbtiles`
+          mkdir -p dist data/sources maps
+          # Run Slicing & optimization
+          sh maps/crop_dandong.sh
+          python3 maps/raster_optimizer.py dist/dandong.mbtiles`
       };
     }
     if (activeFile === 'script') {
@@ -203,38 +142,107 @@ jobs:
         name: "maps/crop_dandong.sh",
         language: "bash",
         code: `#!/usr/bin/env bash
-# CyberTrail-MapFactory: Crop Dandong local bounds
+# CyberTrail-MapFactory: Crop Dandong Region (Consolidated BBOX)
+# Covers: Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian
 
 set -eo pipefail
 mkdir -p data
 
-LIAONING_URL="https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf"
 BBOX="123.38,39.73,125.70,41.20"
+LIAONING_PBF="data/liaoning.osm.pbf"
+DANDONG_PBF="data/dandong.osm.pbf"
 
-if ! command -v osmium &> /dev/null; then
-  echo "Error: osmium-tool is not installed. Run 'sudo apt install osmium-tool'"
-  exit 1
+if [ ! -f "$LIAONING_PBF" ]; then
+    echo "[*] Liaoning source missing. Downloading..."
+    wget -c "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf" -O "$LIAONING_PBF"
 fi
 
-wget -c "\\\${LIAONING_URL}" -O data/liaoning-latest.osm.pbf
-osmium extract --bbox "\\\${BBOX}" data/liaoning-latest.osm.pbf -o data/dandong.osm.pbf --strategy=complete_ways --overwrite
-echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
+echo "[*] Slicing consolidated Dandong region from Liaoning dataset..."
+osmium extract --bbox "$BBOX" "$LIAONING_PBF" -o "$DANDONG_PBF" --strategy=complete_ways --overwrite
+echo "[+] Slicing complete! Output written to: $DANDONG_PBF"`
+      };
+    }
+    if (activeFile === 'optimizer') {
+      return {
+        name: "maps/raster_optimizer.py",
+        language: "python",
+        code: `#!/usr/bin/env python3
+import sqlite3
+import hashlib
+import os
+import sys
+from PIL import Image
+import io
+
+def optimize_and_deduplicate(db_path):
+    """
+    1. Converts flat tiles schema into map + images tables for deduplication.
+    2. Quantizes PNG raster tiles into PNG8 using PIL adaptive color palette (lowering size up to 70%).
+    3. Runs SQLite VACUUM to shrink .mbtiles file.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # Enable schema normalized structures
+    cursor.execute("CREATE TABLE IF NOT EXISTS images (tile_id TEXT PRIMARY KEY, tile_data BLOB)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS map (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER, tile_id TEXT)")
+    
+    cursor.execute("SELECT zoom_level, tile_column, tile_row, tile_data FROM tiles")
+    raw_tiles = cursor.fetchall()
+    
+    unique_images = {}
+    for zoom, col, row, raw_data in raw_tiles:
+        img = Image.open(io.BytesIO(raw_data))
+        png8_io = io.BytesIO()
+        img_p = img.convert("RGBA").convert("P", palette=Image.Palette.ADAPTIVE, colors=256)
+        img_p.save(png8_io, format="PNG", optimize=True)
+        tile_bytes = png8_io.getvalue()
+        
+        data_hash = hashlib.md5(tile_bytes).hexdigest()
+        if data_hash not in unique_images:
+            unique_images[data_hash] = tile_bytes
+            
+        cursor.execute("INSERT OR REPLACE INTO map VALUES (?, ?, ?, ?)", (zoom, col, row, data_hash))
+        
+    for tile_id, tile_bytes in unique_images.items():
+        cursor.execute("INSERT OR REPLACE INTO images VALUES (?, ?)", (tile_id, sqlite3.Binary(tile_bytes)))
+        
+    cursor.execute("DROP TABLE tiles")
+    cursor.execute("CREATE VIEW tiles AS SELECT map.zoom_level, map.tile_column, map.tile_row, images.tile_data FROM map JOIN images ON map.tile_id = images.tile_id")
+    cursor.execute("INSERT OR REPLACE INTO metadata (name, value) VALUES ('format', 'png')")
+    cursor.execute("VACUUM")
+    conn.commit()
+    conn.close()
+    print("[+] Optimization and SQLite VACUUM complete!")`
       };
     }
     return {
       name: "maps/bounding_boxes.json",
       language: "json",
       code: `{
-  "dandong": {
-    "name": "Dandong (辽宁省丹东市)",
-    "bbox": [123.38, 39.73, 125.70, 41.20],
-    "parent": "liaoning",
-    "description": "Border city in Liaoning, China"
+  "world": {
+    "name": "World (全球底图)",
+    "bbox": [-180.0, -85.0, 180.0, 85.0],
+    "zoom_range": "0-5",
+    "format": "png"
+  },
+  "china_overview": {
+    "name": "China Overview (中国概况底图)",
+    "bbox": [73.66, 18.16, 135.05, 53.56],
+    "zoom_range": "6-8",
+    "format": "png"
   },
   "liaoning": {
-    "name": "Liaoning Province (辽宁省)",
+    "name": "Liaoning Province (辽宁省概况底图)",
     "bbox": [118.84, 38.71, 125.79, 43.43],
-    "description": "Province in Northeast Region"
+    "zoom_range": "9-11",
+    "format": "png"
+  },
+  "dandong": {
+    "name": "Dandong Region Detail (丹东全境详图)",
+    "bbox": [123.38, 39.73, 125.70, 41.20],
+    "zoom_range": "12-16",
+    "format": "png"
   }
 }`
     };
@@ -256,7 +264,7 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
                 <span className="font-bold text-sm tracking-wider uppercase font-mono text-slate-100">CyberTrail</span>
                 <span className="text-[10px] uppercase tracking-widest bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded font-mono">MAPFACTORY</span>
               </div>
-              <p className="text-[10px] text-slate-400">GIS Offline Vector Tile Compilation Console</p>
+              <p className="text-[10px] text-slate-400">Offline Raster PNG MBTiles Production Console</p>
             </div>
           </div>
           
@@ -287,13 +295,12 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
           <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-4 shadow-xl backdrop-blur-md">
             <div className="flex items-center gap-2 mb-3.5 border-b border-slate-800 pb-2.5">
               <Layers className="w-4 h-4 text-emerald-400" />
-              <h2 className="font-semibold text-xs text-slate-300 font-mono tracking-wider uppercase">Compilation Target Presets</h2>
+              <h2 className="font-semibold text-xs text-slate-300 font-mono tracking-wider uppercase">Active Map Packages</h2>
             </div>
             
-            {/* Phase 1 List */}
-            <span className="text-[9px] text-slate-500 font-semibold tracking-wider uppercase block mb-2">Phase 1 Active Targets</span>
-            <div className="space-y-1.5 mb-4">
-              {MAP_TARGETS.filter(t => ['china_overview', 'dandong', 'liaoning'].includes(t.key)).map((target) => (
+            <span className="text-[9px] text-slate-500 font-semibold tracking-wider uppercase block mb-2">Production Layers (PNG Raster)</span>
+            <div className="space-y-1.5">
+              {MAP_TARGETS.map((target) => (
                 <button
                   key={target.key}
                   onClick={() => setSelectedTarget(target)}
@@ -317,34 +324,6 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
                 </button>
               ))}
             </div>
-
-            {/* Phase 2 List */}
-            <span className="text-[9px] text-slate-500 font-semibold tracking-wider uppercase block mb-2">Phase 2 Future Roadmap Targets</span>
-            <div className="space-y-1.5">
-              {MAP_TARGETS.filter(t => !['china_overview', 'dandong', 'liaoning'].includes(t.key)).map((target) => (
-                <button
-                  key={target.key}
-                  onClick={() => setSelectedTarget(target)}
-                  className={`w-full text-left p-2.5 rounded-lg border transition flex items-center justify-between ${
-                    selectedTarget.key === target.key
-                      ? "bg-emerald-950/45 border-emerald-500/50 text-slate-100"
-                      : "bg-slate-950/20 border-slate-900/60 hover:border-slate-800 text-slate-500 hover:text-slate-300"
-                  }`}
-                >
-                  <div className="flex gap-2.5 items-center min-w-0">
-                    <Globe className={`w-4 h-4 shrink-0 ${selectedTarget.key === target.key ? 'text-emerald-400' : 'text-slate-700'}`} />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1">
-                        <span className="font-semibold text-xs truncate">{target.name}</span>
-                        <span className="text-[9px] text-slate-600 shrink-0">({target.chineseName})</span>
-                      </div>
-                      <p className="text-[9px] text-slate-600 truncate">{target.estimatedSize} • Future integration</p>
-                    </div>
-                  </div>
-                  <PlusCircle className="w-3.5 h-3.5 shrink-0 text-slate-700 hover:text-emerald-400 transition" />
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Active Preset Detailed Analytics */}
@@ -358,15 +337,20 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
               <div>
                 <span className="text-slate-500 uppercase text-[9px]">Target Classification</span>
                 <p className="text-slate-200 mt-0.5 font-sans font-medium text-xs">
-                  {selectedTarget.layerType.toUpperCase()} {selectedTarget.parent ? `(Parent: ${selectedTarget.parent.toUpperCase()})` : '(Independent Scope)'}
+                  {selectedTarget.layerType.toUpperCase()} {selectedTarget.parent ? `(Parent: ${selectedTarget.parent.toUpperCase()})` : '(Independent Root)'}
                 </p>
               </div>
 
               <div>
                 <span className="text-slate-500 uppercase text-[9px]">Slicing Tool Pipeline</span>
                 <p className="text-slate-200 mt-0.5">
-                  {selectedTarget.parent ? `Osmium BBOX Cutting and Geometry-Assembly` : `None (Direct Compilation)`}
+                  {selectedTarget.key === 'dandong' ? `Osmium Slicing, BBox [123.38, 39.73, 125.70, 41.20]` : `Direct Regional Slicing & Extraction`}
                 </p>
+              </div>
+
+              <div>
+                <span className="text-slate-500 uppercase text-[9px]">Raster Compaction Strategy</span>
+                <p className="text-emerald-400 font-bold font-sans text-xs mt-0.5">PNG8 Lossless Quantization, deduplication, SQLite VACUUM</p>
               </div>
 
               <div>
@@ -427,14 +411,13 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              CyberTrail Loader Map Guide
+              Android Loading Guide
             </button>
           </div>
 
-          {/* TAB 1: GIS CONFIGURATOR (Visual Bounds + Gemini Copilot Side-by-Side) */}
+          {/* TAB 1: GIS CONFIGURATOR */}
           {activeTab === 'editor' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-              {/* Boundary Editor and Bounding Visualizer */}
               <div className="flex flex-col h-full justify-between">
                 <InteractiveMap
                   selectedTarget={selectedTarget}
@@ -443,7 +426,6 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
                 />
               </div>
 
-              {/* Server-Side Gemini Helper */}
               <div className="flex flex-col h-full justify-between">
                 <GisAssistant />
               </div>
@@ -460,14 +442,14 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
             </div>
           )}
 
-          {/* TAB 3: CYBERTRAIL OFFLINE LOADER INTEGRATION GUIDE */}
+          {/* TAB 3: ANDROID CLIENT INTEGRATION GUIDE */}
           {activeTab === 'guide' && (
             <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-5 shadow-xl backdrop-blur-md space-y-5">
               <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
                 <div>
-                  <h3 className="font-semibold text-sm text-slate-100">CyberTrail App Offline Loading Protocol</h3>
-                  <p className="text-[10px] text-slate-400">Step-by-step instructions for importing compiled .mbtiles into testing systems</p>
+                  <h3 className="font-semibold text-sm text-slate-100">CyberTrail Android Client Integration Guide</h3>
+                  <p className="text-[10px] text-slate-400">Step-by-step guidelines to mount compiled offline Raster PNG MBTiles without client modification</p>
                 </div>
               </div>
 
@@ -478,92 +460,65 @@ echo "Compiled Dandong map slice safely in: data/dandong.osm.pbf"`
                     Retrieving Compiled Asset Package
                   </h4>
                   <p className="pl-6">
-                    Navigate to the repository&apos;s <b>Releases</b> page and locate the latest compiled tag (e.g., <code>maps-YYYYMMDD-HHMM</code>). Download the targeted mbtiles database file like <code>dandong.mbtiles</code>.
+                    Navigate to the repository&apos;s <b>Releases</b> page and locate the latest compiled tag. Download the targeted mbtiles database file (e.g., <code>dandong.mbtiles</code>).
                   </p>
                 </div>
 
                 <div className="space-y-1.5">
                   <h4 className="font-bold text-slate-100 flex items-center gap-2 text-[11px] uppercase tracking-wide">
                     <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-mono">2</span>
-                    Importing to Device Sandbox Storage
+                    Importing to Android Storage Sandbox
                   </h4>
                   <p className="pl-6">
-                    Place the <code>.mbtiles</code> file inside your mobile app sandbox directory:
+                    Place the <code>.mbtiles</code> file inside your Android app sandbox directory:
                   </p>
                   <ul className="pl-12 list-disc space-y-1">
-                    <li><b>Android:</b> Load into <code>/sdcard/Android/data/com.cybertrail.tracker/files/maps/</code></li>
-                    <li><b>iOS (Files App):</b> Copy file directly into the local <code>CyberTrail/Maps/</code> shared container folder.</li>
+                    <li><b>Standard Path:</b> <code>/sdcard/Android/data/com.cybertrail.tracker/files/maps/dandong.mbtiles</code></li>
                   </ul>
                 </div>
 
                 <div className="space-y-2">
                   <h4 className="font-bold text-slate-100 flex items-center gap-2 text-[11px] uppercase tracking-wide">
                     <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-mono">3</span>
-                    Sample MapLibre Rendering Code
+                    Android Native Loader Boilerplate (Kotlin)
                   </h4>
                   <p className="pl-6">
-                    Here is the boilerplate to integrate your locally stored vector tiles securely using MapLibre React Native or Native SDKs:
+                    Since the format is standard <code>png</code> raster, the native client loads it as a standard raster layer. Here is the exact Kotlin implementation:
                   </p>
                   <div className="bg-slate-950 p-3 rounded font-mono text-[10px] text-slate-400 border border-slate-800 relative group select-all">
                     <button
-                      onClick={() => handleCopyCode(`// Import MapLibre vector style referencing the local database
-const offlineStyle = {
-  version: 8,
-  sources: {
-    'custom-vector-source': {
-      type: 'vector',
-      tiles: ['mbtiles://{local_path_to_mbtiles}/{z}/{x}/{y}.pbf'],
-      minzoom: 0,
-      maxzoom: 14
+                      onClick={() => handleCopyCode(`// Load offline Raster MBTiles file directly on Android
+val mbtilesFile = File(context.getExternalFilesDir("maps"), "dandong.mbtiles")
+if (mbtilesFile.exists()) {
+    val db = SQLiteDatabase.openDatabase(mbtilesFile.absolutePath, null, SQLiteDatabase.OPEN_READONLY)
+    
+    // Verify that format is indeed raster PNG
+    val cursor = db.rawQuery("SELECT value FROM metadata WHERE name = 'format'", null)
+    if (cursor.moveToFirst() && cursor.getString(0) == "png") {
+        Log.d("CyberTrail", "Raster PNG MBTiles loaded successfully!")
     }
-  },
-  layers: [
-    {
-      id: 'background',
-      type: 'background',
-      paint: { 'background-color': '#0f172a' }
-    },
-    {
-      id: 'roads',
-      source: 'custom-vector-source',
-      'source-layer': 'transportation',
-      type: 'line',
-      paint: { 'line-color': '#10b981', 'line-width': 1.2 }
-    }
-  ]
-};`, 'code-map')}
+    cursor.close()
+    db.close()
+}`, 'code-map')}
                       className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 p-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 transition"
                       title="Copy code"
                     >
                       {copiedTextKey === 'code-map' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                     <pre className="overflow-x-auto leading-normal whitespace-pre">
-{`// Import MapLibre vector style referencing the local database
-const offlineStyle = {
-  version: 8,
-  sources: {
-    'custom-vector-source': {
-      type: 'vector',
-      tiles: ['mbtiles://{local_path_to}/maps/dandong.mbtiles/{z}/{x}/{y}.pbf'],
-      minzoom: 0,
-      maxzoom: 14
+{`// Load offline Raster MBTiles file directly on Android
+val mbtilesFile = File(context.getExternalFilesDir("maps"), "dandong.mbtiles")
+if (mbtilesFile.exists()) {
+    val db = SQLiteDatabase.openDatabase(mbtilesFile.absolutePath, null, SQLiteDatabase.OPEN_READONLY)
+    
+    // Verify that format is indeed raster PNG
+    val cursor = db.rawQuery("SELECT value FROM metadata WHERE name = 'format'", null)
+    if (cursor.moveToFirst() && cursor.getString(0) == "png") {
+        Log.d("CyberTrail", "Raster PNG MBTiles loaded successfully!")
     }
-  },
-  layers: [
-    {
-      id: 'background',
-      type: 'background',
-      paint: { 'background-color': '#0f172a' }
-    },
-    {
-      id: 'roads',
-      source: 'custom-vector-source',
-      'source-layer': 'transportation',
-      type: 'line',
-      paint: { 'line-color': '#10b981', 'line-width': 1.2 }
-    }
-  ]
-};`}
+    cursor.close()
+    db.close()
+}`}
                     </pre>
                   </div>
                 </div>
@@ -571,14 +526,14 @@ const offlineStyle = {
             </div>
           )}
 
-          {/* SCRIPT STUDIO & REPOSITORY VIEW: Interactive repository configurations tab bar */}
+          {/* SCRIPT STUDIO & REPOSITORY VIEW */}
           <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-5 shadow-xl backdrop-blur-md">
             <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <FileCode className="w-4 h-4 text-emerald-400" />
                 <div>
                   <h3 className="font-semibold text-xs text-slate-200 tracking-wider uppercase font-mono">Repository File Studio</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Explore files generated for your Git repository workspace</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Explore the production code generated for your pipeline workspace</p>
                 </div>
               </div>
 
@@ -595,6 +550,12 @@ const offlineStyle = {
                   className={`px-2 py-1 rounded transition ${activeFile === 'script' ? 'bg-slate-800 text-white' : 'hover:text-slate-200'}`}
                 >
                   crop_dandong.sh
+                </button>
+                <button
+                  onClick={() => setActiveFile('optimizer')}
+                  className={`px-2 py-1 rounded transition ${activeFile === 'optimizer' ? 'bg-slate-800 text-white' : 'hover:text-slate-200'}`}
+                >
+                  raster_optimizer.py
                 </button>
                 <button
                   onClick={() => setActiveFile('json')}
@@ -615,7 +576,7 @@ const offlineStyle = {
                 {copiedTextKey === activeFile ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
               
-              <div className="bg-slate-950 rounded-lg p-3.5 border border-slate-850 font-mono text-[10px] text-slate-300 overflow-x-auto select-all max-h-[220px] scrollbar-thin">
+              <div className="bg-slate-950 rounded-lg p-3.5 border border-slate-850 font-mono text-[10px] text-slate-300 overflow-x-auto select-all max-h-[300px] scrollbar-thin">
                 <span className="text-[9px] text-slate-500 uppercase block mb-1.5">{fileInfo.name}</span>
                 <pre className="leading-relaxed whitespace-pre font-mono">{fileInfo.code}</pre>
               </div>
@@ -631,9 +592,9 @@ const offlineStyle = {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
           <span>CyberTrail-MapFactory GIS Console © 2026-present</span>
           <div className="flex gap-4 items-center">
-            <span>MAPNIK_ZOOM_MAX: 14</span>
+            <span>RASTER_MAP_FORMAT: PNG</span>
             <span className="text-slate-600">|</span>
-            <span>WGS_84 DATABASE_HEALTH: green</span>
+            <span>OPTIMIZATIONS: PNG8 + DEDUPLICATION + VACUUM</span>
           </div>
         </div>
       </footer>

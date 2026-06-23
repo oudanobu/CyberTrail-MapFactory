@@ -15,26 +15,18 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
   // Determine viewport domain based on active target to simulate dynamic zoom
   // We want to auto-adjust min/max bounds of our SVG coordinate grid to focus on the target region.
   const getViewportDomain = () => {
-    // If United States
-    if (selectedTarget.key === "usa") {
-      return { lonMin: -130, lonMax: -60, latMin: 20, latMax: 52 };
+    if (selectedTarget.key === "world") {
+      return { lonMin: -180, lonMax: 180, latMin: -85, latMax: 85 };
     }
-    // If full China
-    if (selectedTarget.key === "china" || selectedTarget.key === "japan") {
+    if (selectedTarget.key === "china_overview") {
       return { lonMin: 70, lonMax: 150, latMin: 15, latMax: 55 };
     }
-    // Province level
     if (selectedTarget.key === "liaoning") {
       return { lonMin: 117, lonMax: 127, latMin: 37, latMax: 45 };
     }
-    // City or smaller county level (Dandong, Kuandian, Shenyang, Tokyo)
-    if (selectedTarget.key === "dandong" || selectedTarget.key === "kuandian" || selectedTarget.key === "shenyang") {
+    if (selectedTarget.key === "dandong") {
       return { lonMin: 121.5, lonMax: 127.5, latMin: 38.5, latMax: 42.0 };
     }
-    if (selectedTarget.key === "tokyo") {
-      return { lonMin: 138.0, lonMax: 141.0, latMin: 35.0, latMax: 36.5 };
-    }
-    // Default safe fallback (East Asia scale)
     return { lonMin: 110, lonMax: 135, latMin: 30, latMax: 48 };
   };
 
