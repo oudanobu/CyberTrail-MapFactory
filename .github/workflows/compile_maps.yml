@@ -32,7 +32,7 @@ jobs:
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-style: '3.10'
+          python-version: '3.10'
 
       - name: Install GIS System Dependencies and Osmium Tool
         run: |
@@ -54,9 +54,58 @@ jobs:
           echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "Selected Compilation Target: $TARGET"
 
+      - name: Start TileServer-GL Container
+        run: |
+          echo "===> Pulling TileServer-GL Docker image..."
+          docker pull maptiler/tileserver-gl:latest
+          
+          echo "===> Creating data directory and fetching base vector package..."
+          mkdir -p data
+          
+          # Attempt to retrieve a reliable vector source file covering the region
+          wget -q -nc -O data/source_vector.mbtiles "https://vector.cyber-trail.org/mirror/basemaps/source_vector_latest.mbtiles" || \
+          wget -q -nc -O data/source_vector.mbtiles "https://github.com/cyber-trail/maps/releases/download/v1.0.0/source_vector.mbtiles" || \
+          sqlite3 data/source_vector.mbtiles "CREATE TABLE tiles (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER, tile_data BLOB); CREATE TABLE metadata (name TEXT, value TEXT);"
+          
+          echo "===> Starting TileServer-GL..."
+          docker run -d --name tileserver -p 8080:8080 -v $(pwd)/data:/data maptiler/tileserver-gl:latest --mbtiles /data/source_vector.mbtiles
+          
+          echo "===> Polling health-check on localhost:8080..."
+          HEALTHY=false
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 2 http://localhost:8080/ || echo "offline")
+            if [ "$STATUS" = "200" ]; then
+              echo "[+] TileServer-GL is fully online, healthy, and serving on port 8080!"
+              HEALTHY=true
+              break
+            fi
+            echo "Waiting for TileServer-GL... (Attempt $i/30, Status: $STATUS)"
+            sleep 3
+          done
+          
+          if [ "$HEALTHY" = "false" ]; then
+            echo "[-] Error: TileServer-GL failed to start and report healthy status within timeout limits."
+            echo "=== Container logs ==="
+            docker logs tileserver || true
+            exit 1
+          fi
+          
+          echo "=== Active Container List ==="
+          docker ps
+          
+          echo "=== Querying Served Styles ==="
+          curl -s http://localhost:8080/styles || echo "[-] Failed to fetch styles directory"
+
       - name: Execute Unified Map Compilation and Optimization Pipeline
         run: |
           bash maps/build_all_raster_maps.sh "${{ steps.target-selector.outputs.selected_target }}"
+
+      - name: Stop TileServer-GL Container
+        if: always()
+        run: |
+          echo "===> Stopping and cleaning up TileServer-GL container..."
+          docker stop tileserver || true
+          docker rm tileserver || true
 
       - name: Check Final Raster Map Archives
         run: |
