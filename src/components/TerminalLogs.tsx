@@ -69,7 +69,7 @@ export default function TerminalLogs({ selectedTarget, customBbox }: TerminalLog
 
     const sliceSequence: SeqEntry[] = [
       { text: `${timestamp()} 📐 Processing projection bounding box: [${bboxStr}]`, type: 'info', delay: 3500 },
-      { text: `Target Zoom Levels: ${selectedTarget.key === 'world' ? 'Z0 - Z5' : selectedTarget.key === 'china' ? 'Z6 - Z8' : selectedTarget.key === 'liaoning_overview' ? 'Z9 - Z11' : 'Z12 - Z17'}`, type: 'metric', delay: 3800 },
+      { text: `Target Zoom Levels: ${selectedTarget.layerType === 'world' ? 'Z0 - Z5' : selectedTarget.layerType === 'country' ? 'Z6 - Z8' : selectedTarget.layerType === 'province' ? 'Z9 - Z11' : selectedTarget.layerType === 'city' ? 'Z12 - Z16' : 'Z17 - Z20'}`, type: 'metric', delay: 3800 },
       { text: `Calculating tile coordinates for selected zooms...`, type: 'info', delay: 4200 },
       { text: `Total tile coordinate index set generated.`, type: 'success', delay: 4600 },
     ];

@@ -21,7 +21,7 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
     if (selectedTarget.key === "china") {
       return { lonMin: 70, lonMax: 150, latMin: 15, latMax: 55 };
     }
-    if (selectedTarget.key === "liaoning_overview") {
+    if (selectedTarget.key === "liaoning") {
       return { lonMin: 116.0, lonMax: 127.0, latMin: 37.0, latMax: 45.0 };
     }
     // For detailed county/district maps, we dynamically focus on the target area with slight padding
@@ -260,8 +260,8 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
             <button
               onClick={() => {
-                const minZ = selectedTarget.key === 'world' ? 0 : selectedTarget.key === 'china' ? 6 : selectedTarget.key === 'liaoning_overview' ? 9 : 12;
-                const maxZ = selectedTarget.key === 'world' ? 5 : selectedTarget.key === 'china' ? 8 : selectedTarget.key === 'liaoning_overview' ? 11 : 17;
+                const minZ = selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : selectedTarget.layerType === 'city' ? 12 : 17;
+                const maxZ = selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : selectedTarget.layerType === 'city' ? 16 : 20;
                 copyToClipboard(`python3 maps/generate_raster_mbtiles.py --bbox="${minLon.toFixed(3)},${minLat.toFixed(3)},${maxLon.toFixed(3)},${maxLat.toFixed(3)}" --minzoom="${minZ}" --maxzoom="${maxZ}" --output="dist/${selectedTarget.key}.mbtiles" --tile_source="opentopomap"`, 'python-source');
               }}
               className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
@@ -272,7 +272,11 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
           </div>
           <span className="text-[9px] text-slate-500 uppercase block mb-1">Direct Download Command (with config tile_source)</span>
           <code className="text-[10px] leading-relaxed break-all">
-            python3 maps/generate_raster_mbtiles.py --bbox="{minLon.toFixed(3)},{minLat.toFixed(3)},{maxLon.toFixed(3)},{maxLat.toFixed(3)}" --minzoom="{selectedTarget.key === 'world' ? 0 : selectedTarget.key === 'china' ? 6 : selectedTarget.key === 'liaoning_overview' ? 9 : 12}" --maxzoom="{selectedTarget.key === 'world' ? 5 : selectedTarget.key === 'china' ? 8 : selectedTarget.key === 'liaoning_overview' ? 11 : 17}" --output="dist/{selectedTarget.key}.mbtiles" --tile_source="opentopomap"
+            {(() => {
+              const minZ = selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : selectedTarget.layerType === 'city' ? 12 : 17;
+              const maxZ = selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : selectedTarget.layerType === 'city' ? 16 : 20;
+              return `python3 maps/generate_raster_mbtiles.py --bbox="${minLon.toFixed(3)},${minLat.toFixed(3)},${maxLon.toFixed(3)},${maxLat.toFixed(3)}" --minzoom="${minZ}" --maxzoom="${maxZ}" --output="dist/${selectedTarget.key}.mbtiles" --tile_source="opentopomap"`;
+            })()}
           </code>
         </div>
 

@@ -6,7 +6,7 @@ export interface MapTarget {
   bbox: [number, number, number, number]; // [min_lon, min_lat, max_lon, max_lat]
   description: string;
   parent?: string;
-  layerType: 'country' | 'province' | 'city' | 'county';
+  layerType: 'world' | 'country' | 'province' | 'city' | 'county_hd';
   estimatedSize: string;
   compileTimeSec: number;
 }

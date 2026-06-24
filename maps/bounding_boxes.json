@@ -1,82 +1,91 @@
 {
   "world": {
-    "name": "World Overview (全球底图)",
+    "name": "World Overview (L0全球底图)",
     "bbox": [-180.0, -85.0, 180.0, 85.0],
-    "description": "Global basemap containing landmasses, country boundaries and oceans for zoom 0-5. Perfect offline canvas.",
+    "description": "Global baseline containing continental outlines, major water bodies, and national borders (Zoom 0-5) in space-efficient PNG format.",
     "zoom_range": "0-5",
     "layer_type": "world",
     "format": "png"
   },
   "china": {
-    "name": "China Overview (中国概况底图)",
+    "name": "China Overview (L1国家概况图)",
     "bbox": [73.66, 18.16, 135.05, 53.56],
     "parent": "world",
-    "description": "Full country overview containing administrative lines, national expressways and major capital nodes for zoom 6-8.",
+    "description": "National coverage containing provincial borders, capital hubs, and critical transport arteries (Zoom 6-8) in Raster PNG format.",
     "zoom_range": "6-8",
     "layer_type": "country",
     "format": "png"
   },
-  "liaoning_overview": {
-    "name": "Liaoning Overview (辽宁省概况图)",
+  "liaoning": {
+    "name": "Liaoning Overview (L2省级概况图)",
     "bbox": [118.84, 38.71, 125.79, 43.43],
     "parent": "china",
-    "description": "Provincial overview showing city positions, expressways, national roads, railways, and major water bodies for zoom 9-11.",
+    "description": "Provincial overview showing geocoded city centers, expressways, provincial highways, railways, and primary river systems (Zoom 9-11) in Raster PNG format.",
     "zoom_range": "9-11",
     "layer_type": "province",
     "format": "png"
   },
-  "zhenxing_detail": {
-    "name": "Zhenxing Detail (振兴区详细图)",
+  "dandong": {
+    "name": "Dandong Detail (L3市级详细图)",
+    "bbox": [123.38, 39.73, 125.70, 41.20],
+    "parent": "liaoning",
+    "description": "City-level detail maps showing secondary transit tracks, county grids, national roads, and surrounding topographic layers (Zoom 12-16) in Raster PNG format.",
+    "zoom_range": "12-16",
+    "layer_type": "city",
+    "format": "png"
+  },
+  "zhenxing_hd": {
+    "name": "Zhenxing UHD (L4三级超精细图)",
     "bbox": [124.30, 40.05, 124.45, 40.16],
-    "parent": "liaoning_overview",
-    "description": "High-resolution detail tiles for Zhenxing district urban core, highlighting streets, riverfront paths, and neighborhood POIs for zoom 12-17.",
-    "zoom_range": "12-17",
-    "layer_type": "city",
+    "parent": "dandong",
+    "description": "Ultra-dense detailed street grids, riverfront boardwalks, community alleys, and POI elevations for Zhenxing urban core (Zoom 17-20) in space-saving PNG8.",
+    "zoom_range": "17-20",
+    "layer_type": "county_hd",
     "format": "png"
   },
-  "yuanbao_detail": {
-    "name": "Yuanbao Detail (元宝区详细图)",
+  "yuanbao_hd": {
+    "name": "Yuanbao UHD (L4三级超精细图)",
     "bbox": [124.34, 40.11, 124.44, 40.19],
-    "parent": "liaoning_overview",
-    "description": "High-resolution detail tiles for Yuanbao district center, containing roads, residential blocks, and scenic mountain areas for zoom 12-17.",
-    "zoom_range": "12-17",
-    "layer_type": "city",
+    "parent": "dandong",
+    "description": "Ultra-dense street blocks, tourist pathways, local residential buildings, and historical park topologies for Yuanbao district (Zoom 17-20) in space-saving PNG8.",
+    "zoom_range": "17-20",
+    "layer_type": "county_hd",
     "format": "png"
   },
-  "zhenan_detail": {
-    "name": "Zhenan Detail (振安区详细图)",
+  "zhenan_hd": {
+    "name": "Zhenan UHD (L4三级超精细图)",
     "bbox": [124.25, 40.08, 124.62, 40.32],
-    "parent": "liaoning_overview",
-    "description": "High-resolution detail tiles for the surrounding Zhenan suburban region, showing local transport grids and hills for zoom 12-17.",
-    "zoom_range": "12-17",
-    "layer_type": "city",
+    "parent": "dandong",
+    "description": "Ultra-dense transport connections, mountain passes, local industry sites, and rural tracks across suburban Zhenan district (Zoom 17-20) in space-saving PNG8.",
+    "zoom_range": "17-20",
+    "layer_type": "county_hd",
     "format": "png"
   },
-  "donggang_detail": {
-    "name": "Donggang Detail (东港市详细图)",
+  "donggang_hd": {
+    "name": "Donggang UHD (L4三级超精细图)",
     "bbox": [123.38, 39.73, 124.35, 40.15],
-    "parent": "liaoning_overview",
-    "description": "High-resolution detail tiles for Donggang coastal city, including harbor areas, agricultural plains, and streets for zoom 12-17.",
-    "zoom_range": "12-17",
-    "layer_type": "city",
+    "parent": "dandong",
+    "description": "Ultra-dense coverage of Donggang coastal zone, port structures, shoreline grids, and primary seafood agricultural corridors (Zoom 17-20) in space-saving PNG8.",
+    "zoom_range": "17-20",
+    "layer_type": "county_hd",
     "format": "png"
   },
-  "fengcheng_detail": {
-    "name": "Fengcheng Detail (凤城市详细图)",
+  "fengcheng_hd": {
+    "name": "Fengcheng UHD (L4三级超精细图)",
     "bbox": [123.55, 40.15, 124.50, 40.78],
-    "parent": "liaoning_overview",
-    "description": "High-resolution detail tiles for Fengcheng, displaying mountain topography, railways, national highway routes, and towns for zoom 12-17.",
-    "zoom_range": "12-17",
-    "layer_type": "city",
+    "parent": "dandong",
+    "description": "Ultra-dense mountain trail systems, rail pathways, county roads, and local towns across Fengcheng mountainous boundaries (Zoom 17-20) in space-saving PNG8.",
+    "zoom_range": "17-20",
+    "layer_type": "county_hd",
     "format": "png"
   },
-  "kuandian_detail": {
-    "name": "Kuandian Detail (宽甸县详细图)",
+  "kuandian_hd": {
+    "name": "Kuandian UHD (L4三级超精细图)",
     "bbox": [124.30, 40.35, 125.70, 41.20],
-    "parent": "liaoning_overview",
-    "description": "High-resolution detail tiles for Kuandian Manchu Autonomous County, featuring dense forest topography, reservoirs, and roads for zoom 12-17.",
-    "zoom_range": "12-17",
-    "layer_type": "city",
+    "parent": "dandong",
+    "description": "Ultra-dense forestry grids, reservoir shorelines, ecological nature preserves, and remote mountain access paths in Kuandian Manchu Autonomous County (Zoom 17-20) in space-saving PNG8.",
+    "zoom_range": "17-20",
+    "layer_type": "county_hd",
     "format": "png"
   }
 }
