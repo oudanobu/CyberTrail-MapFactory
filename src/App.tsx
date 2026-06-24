@@ -199,12 +199,12 @@ compile_and_optimize_mbtiles() {
   local OUTPUT="dist/\${KEY}.mbtiles"
 
   python3 maps/generate_raster_mbtiles.py \\
-    --bbox "\$BBOX" \\
-    --minzoom "\$MINZ" \\
-    --maxzoom "\$MAXZ" \\
-    --output "\$OUTPUT" \\
-    --concurrency "\$CONCURRENCY" \\
-    --cache_dir "data/tile_cache"
+    --bbox="\$BBOX" \\
+    --minzoom="\$MINZ" \\
+    --maxzoom="\$MAXZ" \\
+    --output="\$OUTPUT" \\
+    --concurrency="\$CONCURRENCY" \\
+    --cache_dir="data/tile_cache"
 
   python3 maps/raster_optimizer.py "\$OUTPUT"
 }`

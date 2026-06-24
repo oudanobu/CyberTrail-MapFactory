@@ -33,12 +33,12 @@ compile_and_optimize_mbtiles() {
   # Notice: we no longer pass hardcoded URLs; python3 maps/generate_raster_mbtiles.py will automatically
   # read the active tile source configurations from maps/map_config.json!
   python3 maps/generate_raster_mbtiles.py \
-    --bbox "$BBOX" \
-    --minzoom "$MINZ" \
-    --maxzoom "$MAXZ" \
-    --output "$OUTPUT" \
-    --concurrency "$CONCURRENCY" \
-    --cache_dir "data/tile_cache"
+    --bbox="$BBOX" \
+    --minzoom="$MINZ" \
+    --maxzoom="$MAXZ" \
+    --output="$OUTPUT" \
+    --concurrency="$CONCURRENCY" \
+    --cache_dir="data/tile_cache"
 
   # Run python raster optimizer (Deduplication & SQLite VACUUM)
   python3 maps/raster_optimizer.py "$OUTPUT"
