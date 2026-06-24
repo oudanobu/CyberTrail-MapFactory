@@ -696,7 +696,7 @@ if (mbtilesFile.exists()) {
                   onClick={() => setActiveFile('script')}
                   className={`px-2 py-1 rounded transition ${activeFile === 'script' ? 'bg-slate-800 text-white' : 'hover:text-slate-200'}`}
                 >
-                  build_all_raster_maps.sh
+                  compile_by_config.py
                 </button>
                 <button
                   onClick={() => setActiveFile('optimizer')}
@@ -708,7 +708,7 @@ if (mbtilesFile.exists()) {
                   onClick={() => setActiveFile('json')}
                   className={`px-2 py-1 rounded transition ${activeFile === 'json' ? 'bg-slate-800 text-white' : 'hover:text-slate-200'}`}
                 >
-                  bounding_boxes.json
+                  {selectedTarget.key}.json
                 </button>
               </div>
             </div>

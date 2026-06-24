@@ -9,7 +9,7 @@ on:
       build_target:
         description: 'Compile Target (build=all, build=country, build=province, build=admin3, or build=<single_key>)'
         required: true
-        default: 'build=all'
+        default: 'build=admin3'
         type: choice
         options:
           - build=all
@@ -58,7 +58,7 @@ jobs:
         run: |
           TARGET="${{ github.event.inputs.build_target }}"
           if [ -z "$TARGET" ]; then
-            TARGET="build=all"
+            TARGET="build=admin3"
           fi
           echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
 

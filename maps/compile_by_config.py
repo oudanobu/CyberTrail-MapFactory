@@ -66,13 +66,13 @@ def compile_and_optimize(config_key):
     # 1. Run Tile Compilation Pipeline (generate_raster_mbtiles.py)
     gen_cmd = [
         "python3", os.path.join(MAPS_DIR, "generate_raster_mbtiles.py"),
-        "--bbox", str(bbox),
-        "--minzoom", str(minzoom),
-        "--maxzoom", str(maxzoom),
-        "--output", abs_output,
-        "--concurrency", "8",
-        "--cache_dir", os.path.join(WORKSPACE_ROOT, "data", "tile_cache"),
-        "--tile_source", str(tile_source)
+        f"--bbox={bbox}",
+        f"--minzoom={minzoom}",
+        f"--maxzoom={maxzoom}",
+        f"--output={abs_output}",
+        "--concurrency=8",
+        f"--cache_dir={os.path.join(WORKSPACE_ROOT, 'data', 'tile_cache')}",
+        f"--tile_source={tile_source}"
     ]
 
     print(f"[*] Executing generator: {' '.join(gen_cmd)}")
