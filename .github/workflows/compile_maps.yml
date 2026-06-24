@@ -7,15 +7,20 @@ on:
   workflow_dispatch:
     inputs:
       map_target:
-        description: 'Compile Target (world, china, dandong_overview, dandong_detail, or all)'
+        description: 'Compile Target (world, china, liaoning_overview, zhenxing_detail, yuanbao_detail, zhenan_detail, donggang_detail, fengcheng_detail, kuandian_detail, or all)'
         required: true
         default: 'all'
         type: choice
         options:
           - world
           - china
-          - dandong_overview
-          - dandong_detail
+          - liaoning_overview
+          - zhenxing_detail
+          - yuanbao_detail
+          - zhenan_detail
+          - donggang_detail
+          - fengcheng_detail
+          - kuandian_detail
           - all
 
 permissions:
@@ -90,7 +95,7 @@ jobs:
           if [ -n "$(ls -A dist/*.mbtiles 2>/dev/null)" ]; then
             gh release create "$RELEASE_TAG" dist/*.mbtiles \
               --title "CyberTrail Raster Maps $RELEASE_TAG" \
-              --notes "Production-ready Resilient Offline Raster PNG MBTiles. Color optimized to space-efficient PNG8 format. Includes World (0-5), China (6-8), Dandong Overview (9-11), and Dandong Detailed (12-16)."
+              --notes "Production-ready Resilient Offline Raster PNG MBTiles. Color optimized to space-efficient PNG8 format. Includes World (0-5), China (6-8), Liaoning Overview (9-11), and Dandong Districts (12-17)."
           else
             echo "No compiled mbtiles artifacts found! Release creation cancelled."
             exit 1

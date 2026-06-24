@@ -46,34 +46,94 @@ const MAP_TARGETS: MapTarget[] = [
     compileTimeSec: 60
   },
   {
-    key: "dandong_overview",
-    name: "Dandong Overview",
-    chineseName: "丹东概况图",
+    key: "liaoning_overview",
+    name: "Liaoning Overview",
+    chineseName: "辽宁省概况图",
     sourceUrl: "https://tile.opentopomap.org/",
-    bbox: [123.38, 39.73, 125.70, 41.20],
-    description: "Regional overview containing roads, transit lines, and county-level boundaries for Dandong region (Zoom 9-11) in Raster PNG format.",
+    bbox: [118.84, 38.71, 125.79, 43.43],
+    description: "Provincial overview showing city positions, expressways, national roads, railways, and major water bodies (Zoom 9-11) in Raster PNG format.",
     parent: "china",
     layerType: "province",
-    estimatedSize: "12.3 MB",
+    estimatedSize: "38.6 MB",
+    compileTimeSec: 45
+  },
+  {
+    key: "zhenxing_detail",
+    name: "Zhenxing Detail",
+    chineseName: "振兴区详细图",
+    sourceUrl: "https://tile.opentopomap.org/",
+    bbox: [124.30, 40.05, 124.45, 40.16],
+    description: "High-resolution detail tiles for Zhenxing district urban core, highlighting streets, riverfront paths, and neighborhood POIs (Zoom 12-17) in Raster PNG format.",
+    parent: "liaoning_overview",
+    layerType: "city",
+    estimatedSize: "8.5 MB",
+    compileTimeSec: 15
+  },
+  {
+    key: "yuanbao_detail",
+    name: "Yuanbao Detail",
+    chineseName: "元宝区详细图",
+    sourceUrl: "https://tile.opentopomap.org/",
+    bbox: [124.34, 40.11, 124.44, 40.19],
+    description: "High-resolution detail tiles for Yuanbao district center, containing roads, residential blocks, and scenic mountain areas (Zoom 12-17) in Raster PNG format.",
+    parent: "liaoning_overview",
+    layerType: "city",
+    estimatedSize: "5.2 MB",
+    compileTimeSec: 12
+  },
+  {
+    key: "zhenan_detail",
+    name: "Zhenan Detail",
+    chineseName: "振安区详细图",
+    sourceUrl: "https://tile.opentopomap.org/",
+    bbox: [124.25, 40.08, 124.62, 40.32],
+    description: "High-resolution detail tiles for the surrounding Zhenan suburban region, showing local transport grids and hills (Zoom 12-17) in Raster PNG format.",
+    parent: "liaoning_overview",
+    layerType: "city",
+    estimatedSize: "14.3 MB",
     compileTimeSec: 25
   },
   {
-    key: "dandong_detail",
-    name: "Dandong Detailed",
-    chineseName: "丹东全域详图",
+    key: "donggang_detail",
+    name: "Donggang Detail",
+    chineseName: "东港市详细图",
     sourceUrl: "https://tile.opentopomap.org/",
-    bbox: [123.38, 39.73, 125.70, 41.20],
-    description: "High-resolution detailed tileset (Zoom 12-16) covering Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian in Raster PNG format.",
-    parent: "dandong_overview",
+    bbox: [123.38, 39.73, 124.35, 40.15],
+    description: "High-resolution detail tiles for Donggang coastal city, including harbor areas, agricultural plains, and streets (Zoom 12-17) in Raster PNG format.",
+    parent: "liaoning_overview",
     layerType: "city",
-    estimatedSize: "145.8 MB",
-    compileTimeSec: 180
+    estimatedSize: "28.1 MB",
+    compileTimeSec: 45
+  },
+  {
+    key: "fengcheng_detail",
+    name: "Fengcheng Detail",
+    chineseName: "凤城市详细图",
+    sourceUrl: "https://tile.opentopomap.org/",
+    bbox: [123.55, 40.15, 124.50, 40.78],
+    description: "High-resolution detail tiles for Fengcheng, displaying mountain topography, railways, national highway routes, and towns (Zoom 12-17) in Raster PNG format.",
+    parent: "liaoning_overview",
+    layerType: "city",
+    estimatedSize: "42.5 MB",
+    compileTimeSec: 55
+  },
+  {
+    key: "kuandian_detail",
+    name: "Kuandian Detail",
+    chineseName: "宽甸县详细图",
+    sourceUrl: "https://tile.opentopomap.org/",
+    bbox: [124.30, 40.35, 125.70, 41.20],
+    description: "High-resolution detail tiles for Kuandian Manchu Autonomous County, featuring dense forest topography, reservoirs, and roads (Zoom 12-17) in Raster PNG format.",
+    parent: "liaoning_overview",
+    layerType: "city",
+    estimatedSize: "55.4 MB",
+    compileTimeSec: 75
   }
 ];
 
 export default function App() {
-  const [selectedTarget, setSelectedTarget] = useState<MapTarget>(MAP_TARGETS[3]); // Default to Dandong Detailed
-  const [activeBbox, setActiveBbox] = useState<[number, number, number, number]>(MAP_TARGETS[3].bbox);
+  const [selectedTarget, setSelectedTarget] = useState<MapTarget>(MAP_TARGETS[2]); // Default to Liaoning Overview
+  const [activeBbox, setActiveBbox] = useState<[number, number, number, number]>(MAP_TARGETS[2].bbox);
   const [activeTab, setActiveTab] = useState<'editor' | 'cli' | 'guide'>('editor');
   const [activeFile, setActiveFile] = useState<'workflow' | 'script' | 'optimizer' | 'json'>('workflow');
   const [copiedTextKey, setCopiedTextKey] = useState<string | null>(null);
@@ -86,6 +146,35 @@ export default function App() {
     navigator.clipboard.writeText(code);
     setCopiedTextKey(key);
     setTimeout(() => setCopiedTextKey(null), 2000);
+  };
+
+  const renderTargetButton = (target: MapTarget, isNested: boolean = false) => {
+    const isSelected = selectedTarget.key === target.key;
+    return (
+      <button
+        key={target.key}
+        onClick={() => setSelectedTarget(target)}
+        className={`w-full text-left p-2 rounded-lg border transition flex items-center justify-between ${
+          isNested ? 'ml-3' : ''
+        } ${
+          isSelected
+            ? "bg-emerald-950/40 border-emerald-500/50 text-slate-50 shadow-md"
+            : "bg-slate-950/40 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200"
+        }`}
+      >
+        <div className="flex gap-2.5 items-center min-w-0">
+          <MapPin className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`} />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1">
+              <span className="font-semibold text-xs truncate">{target.name}</span>
+              <span className="text-[10px] text-slate-400 shrink-0">({target.chineseName})</span>
+            </div>
+            <p className="text-[9px] text-slate-500 truncate">{target.estimatedSize} • {target.compileTimeSec}s est</p>
+          </div>
+        </div>
+        <ChevronRight className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-emerald-400' : 'text-slate-600'}`} />
+      </button>
+    );
   };
 
   const getFileContent = () => {
@@ -102,15 +191,20 @@ on:
   workflow_dispatch:
     inputs:
       map_target:
-        description: 'Compile Target (world, china, dandong_overview, dandong_detail, or all)'
+        description: 'Compile Target (world, china, liaoning_overview, zhenxing_detail, yuanbao_detail, zhenan_detail, donggang_detail, fengcheng_detail, kuandian_detail, or all)'
         required: true
         default: 'all'
         type: choice
         options:
           - world
           - china
-          - dandong_overview
-          - dandong_detail
+          - liaoning_overview
+          - zhenxing_detail
+          - yuanbao_detail
+          - zhenan_detail
+          - donggang_detail
+          - fengcheng_detail
+          - kuandian_detail
           - all
 
 permissions:
@@ -280,16 +374,46 @@ def optimize_and_deduplicate(db_path):
     "zoom_range": "6-8",
     "format": "png"
   },
-  "dandong_overview": {
-    "name": "Dandong Overview (丹东概况图)",
-    "bbox": [123.38, 39.73, 125.70, 41.20],
+  "liaoning_overview": {
+    "name": "Liaoning Overview (辽宁省概况图)",
+    "bbox": [118.84, 38.71, 125.79, 43.43],
     "zoom_range": "9-11",
     "format": "png"
   },
-  "dandong_detail": {
-    "name": "Dandong Detailed (丹东全域详图)",
-    "bbox": [123.38, 39.73, 125.70, 41.20],
-    "zoom_range": "12-16",
+  "zhenxing_detail": {
+    "name": "Zhenxing Detail (振兴区详细图)",
+    "bbox": [124.30, 40.05, 124.45, 40.16],
+    "zoom_range": "12-17",
+    "format": "png"
+  },
+  "yuanbao_detail": {
+    "name": "Yuanbao Detail (元宝区详细图)",
+    "bbox": [124.34, 40.11, 124.44, 40.19],
+    "zoom_range": "12-17",
+    "format": "png"
+  },
+  "zhenan_detail": {
+    "name": "Zhenan Detail (振安区详细图)",
+    "bbox": [124.25, 40.08, 124.62, 40.32],
+    "zoom_range": "12-17",
+    "format": "png"
+  },
+  "donggang_detail": {
+    "name": "Donggang Detail (东港市详细图)",
+    "bbox": [123.38, 39.73, 124.35, 40.15],
+    "zoom_range": "12-17",
+    "format": "png"
+  },
+  "fengcheng_detail": {
+    "name": "Fengcheng Detail (凤城市详细图)",
+    "bbox": [123.55, 40.15, 124.50, 40.78],
+    "zoom_range": "12-17",
+    "format": "png"
+  },
+  "kuandian_detail": {
+    "name": "Kuandian Detail (宽甸县详细图)",
+    "bbox": [124.30, 40.35, 125.70, 41.20],
+    "zoom_range": "12-17",
     "format": "png"
   }
 }`
@@ -346,31 +470,36 @@ def optimize_and_deduplicate(db_path):
               <h2 className="font-semibold text-xs text-slate-300 font-mono tracking-wider uppercase">Active Map Packages</h2>
             </div>
             
-            <span className="text-[9px] text-slate-500 font-semibold tracking-wider uppercase block mb-2">Production Layers (PNG Raster)</span>
-            <div className="space-y-1.5">
-              {MAP_TARGETS.map((target) => (
-                <button
-                  key={target.key}
-                  onClick={() => setSelectedTarget(target)}
-                  className={`w-full text-left p-2.5 rounded-lg border transition flex items-center justify-between ${
-                    selectedTarget.key === target.key
-                      ? "bg-emerald-950/40 border-emerald-500/50 text-slate-50 shadow-md"
-                      : "bg-slate-950/40 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  <div className="flex gap-2.5 items-center min-w-0">
-                    <MapPin className={`w-4 h-4 shrink-0 ${selectedTarget.key === target.key ? 'text-emerald-400' : 'text-slate-500'}`} />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1">
-                        <span className="font-semibold text-xs truncate">{target.name}</span>
-                        <span className="text-[9px] text-slate-400 shrink-0">({target.chineseName})</span>
-                      </div>
-                      <p className="text-[9px] text-slate-500 truncate">{target.estimatedSize} • {target.compileTimeSec}s est</p>
-                    </div>
-                  </div>
-                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ${selectedTarget.key === target.key ? 'text-emerald-400' : 'text-slate-600'}`} />
-                </button>
-              ))}
+            <div className="space-y-4">
+              {/* Level 0 & 1: Global & National */}
+              <div>
+                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">Level 0 & 1 • Global & National Overview</span>
+                <div className="space-y-1">
+                  {MAP_TARGETS.filter(t => t.key === 'world' || t.key === 'china').map(target => 
+                    renderTargetButton(target, false)
+                  )}
+                </div>
+              </div>
+
+              {/* Level 2: Provincial Overview */}
+              <div>
+                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">Level 2 • Provincial Overview</span>
+                <div className="space-y-1">
+                  {MAP_TARGETS.filter(t => t.key === 'liaoning_overview').map(target => 
+                    renderTargetButton(target, false)
+                  )}
+                </div>
+              </div>
+
+              {/* Level 3: County & District Detail */}
+              <div>
+                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">Level 3 • County/District Detailed (Zoom 12-17)</span>
+                <div className="space-y-1 pl-1 border-l border-slate-800">
+                  {MAP_TARGETS.filter(t => t.key.endsWith('_detail')).map(target => 
+                    renderTargetButton(target, true)
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -392,7 +521,7 @@ def optimize_and_deduplicate(db_path):
               <div>
                 <span className="text-slate-500 uppercase text-[9px]">Slicing Tool Pipeline</span>
                 <p className="text-slate-200 mt-0.5">
-                  {selectedTarget.key === 'dandong' ? `Osmium Slicing, BBox [123.38, 39.73, 125.70, 41.20]` : `Direct Regional Slicing & Extraction`}
+                  {selectedTarget.key.endsWith('_detail') ? `County/District Detailed BBox Extraction (Zoom 12-17)` : `Direct Regional BBox Tile Download`}
                 </p>
               </div>
 

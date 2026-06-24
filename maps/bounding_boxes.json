@@ -16,21 +16,66 @@
     "layer_type": "country",
     "format": "png"
   },
-  "dandong_overview": {
-    "name": "Dandong Overview (丹东概况图)",
-    "bbox": [123.38, 39.73, 125.70, 41.20],
+  "liaoning_overview": {
+    "name": "Liaoning Overview (辽宁省概况图)",
+    "bbox": [118.84, 38.71, 125.79, 43.43],
     "parent": "china",
-    "description": "Regional overview containing roads, transit lines, and county-level boundaries for Dandong region (Zoom 9-11) in Raster PNG format.",
+    "description": "Provincial overview showing city positions, expressways, national roads, railways, and major water bodies for zoom 9-11.",
     "zoom_range": "9-11",
     "layer_type": "province",
     "format": "png"
   },
-  "dandong_detail": {
-    "name": "Dandong Detailed (丹东全域详图)",
-    "bbox": [123.38, 39.73, 125.70, 41.20],
-    "parent": "dandong_overview",
-    "description": "High-resolution detailed tileset (Zoom 12-16) covering Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian in Raster PNG format.",
-    "zoom_range": "12-16",
+  "zhenxing_detail": {
+    "name": "Zhenxing Detail (振兴区详细图)",
+    "bbox": [124.30, 40.05, 124.45, 40.16],
+    "parent": "liaoning_overview",
+    "description": "High-resolution detail tiles for Zhenxing district urban core, highlighting streets, riverfront paths, and neighborhood POIs for zoom 12-17.",
+    "zoom_range": "12-17",
+    "layer_type": "city",
+    "format": "png"
+  },
+  "yuanbao_detail": {
+    "name": "Yuanbao Detail (元宝区详细图)",
+    "bbox": [124.34, 40.11, 124.44, 40.19],
+    "parent": "liaoning_overview",
+    "description": "High-resolution detail tiles for Yuanbao district center, containing roads, residential blocks, and scenic mountain areas for zoom 12-17.",
+    "zoom_range": "12-17",
+    "layer_type": "city",
+    "format": "png"
+  },
+  "zhenan_detail": {
+    "name": "Zhenan Detail (振安区详细图)",
+    "bbox": [124.25, 40.08, 124.62, 40.32],
+    "parent": "liaoning_overview",
+    "description": "High-resolution detail tiles for the surrounding Zhenan suburban region, showing local transport grids and hills for zoom 12-17.",
+    "zoom_range": "12-17",
+    "layer_type": "city",
+    "format": "png"
+  },
+  "donggang_detail": {
+    "name": "Donggang Detail (东港市详细图)",
+    "bbox": [123.38, 39.73, 124.35, 40.15],
+    "parent": "liaoning_overview",
+    "description": "High-resolution detail tiles for Donggang coastal city, including harbor areas, agricultural plains, and streets for zoom 12-17.",
+    "zoom_range": "12-17",
+    "layer_type": "city",
+    "format": "png"
+  },
+  "fengcheng_detail": {
+    "name": "Fengcheng Detail (凤城市详细图)",
+    "bbox": [123.55, 40.15, 124.50, 40.78],
+    "parent": "liaoning_overview",
+    "description": "High-resolution detail tiles for Fengcheng, displaying mountain topography, railways, national highway routes, and towns for zoom 12-17.",
+    "zoom_range": "12-17",
+    "layer_type": "city",
+    "format": "png"
+  },
+  "kuandian_detail": {
+    "name": "Kuandian Detail (宽甸县详细图)",
+    "bbox": [124.30, 40.35, 125.70, 41.20],
+    "parent": "liaoning_overview",
+    "description": "High-resolution detail tiles for Kuandian Manchu Autonomous County, featuring dense forest topography, reservoirs, and roads for zoom 12-17.",
+    "zoom_range": "12-17",
     "layer_type": "city",
     "format": "png"
   }

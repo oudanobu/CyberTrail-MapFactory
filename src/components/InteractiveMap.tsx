@@ -21,13 +21,19 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
     if (selectedTarget.key === "china") {
       return { lonMin: 70, lonMax: 150, latMin: 15, latMax: 55 };
     }
-    if (selectedTarget.key === "dandong_overview") {
-      return { lonMin: 117, lonMax: 127, latMin: 37, latMax: 45 };
+    if (selectedTarget.key === "liaoning_overview") {
+      return { lonMin: 116.0, lonMax: 127.0, latMin: 37.0, latMax: 45.0 };
     }
-    if (selectedTarget.key === "dandong_detail") {
-      return { lonMin: 121.5, lonMax: 127.5, latMin: 38.5, latMax: 42.0 };
-    }
-    return { lonMin: 110, lonMax: 135, latMin: 30, latMax: 48 };
+    // For detailed county/district maps, we dynamically focus on the target area with slight padding
+    const [tMinLon, tMinLat, tMaxLon, tMaxLat] = selectedTarget.bbox;
+    const paddingLon = Math.max(0.04, (tMaxLon - tMinLon) * 0.4);
+    const paddingLat = Math.max(0.04, (tMaxLat - tMinLat) * 0.4);
+    return {
+      lonMin: tMinLon - paddingLon,
+      lonMax: tMaxLon + paddingLon,
+      latMin: tMinLat - paddingLat,
+      latMax: tMaxLat + paddingLat
+    };
   };
 
   const domain = getViewportDomain();
@@ -253,7 +259,11 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
         <div className="bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[10px] text-emerald-400 relative group select-all">
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
             <button
-              onClick={() => copyToClipboard(`python3 maps/generate_raster_mbtiles.py --bbox ${minLon.toFixed(3)},${minLat.toFixed(3)},${maxLon.toFixed(3)},${maxLat.toFixed(3)} --minzoom ${selectedTarget.key === 'world' ? 0 : selectedTarget.key === 'china' ? 6 : selectedTarget.key === 'dandong_overview' ? 9 : 12} --maxzoom ${selectedTarget.key === 'world' ? 5 : selectedTarget.key === 'china' ? 8 : selectedTarget.key === 'dandong_overview' ? 11 : 16} --output dist/${selectedTarget.key}.mbtiles --tile_source opentopomap`, 'python-source')}
+              onClick={() => {
+                const minZ = selectedTarget.key === 'world' ? 0 : selectedTarget.key === 'china' ? 6 : selectedTarget.key === 'liaoning_overview' ? 9 : 12;
+                const maxZ = selectedTarget.key === 'world' ? 5 : selectedTarget.key === 'china' ? 8 : selectedTarget.key === 'liaoning_overview' ? 11 : 17;
+                copyToClipboard(`python3 maps/generate_raster_mbtiles.py --bbox="${minLon.toFixed(3)},${minLat.toFixed(3)},${maxLon.toFixed(3)},${maxLat.toFixed(3)}" --minzoom="${minZ}" --maxzoom="${maxZ}" --output="dist/${selectedTarget.key}.mbtiles" --tile_source="opentopomap"`, 'python-source');
+              }}
               className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
               title="Copy Command"
             >
@@ -262,7 +272,7 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
           </div>
           <span className="text-[9px] text-slate-500 uppercase block mb-1">Direct Download Command (with config tile_source)</span>
           <code className="text-[10px] leading-relaxed break-all">
-            python3 maps/generate_raster_mbtiles.py --bbox {minLon.toFixed(3)},{minLat.toFixed(3)},{maxLon.toFixed(3)},{maxLat.toFixed(3)} --minzoom {selectedTarget.key === 'world' ? 0 : selectedTarget.key === 'china' ? 6 : selectedTarget.key === 'dandong_overview' ? 9 : 12} --maxzoom {selectedTarget.key === 'world' ? 5 : selectedTarget.key === 'china' ? 8 : selectedTarget.key === 'dandong_overview' ? 11 : 16} --output dist/{selectedTarget.key}.mbtiles --tile_source opentopomap
+            python3 maps/generate_raster_mbtiles.py --bbox="{minLon.toFixed(3)},{minLat.toFixed(3)},{maxLon.toFixed(3)},{maxLat.toFixed(3)}" --minzoom="{selectedTarget.key === 'world' ? 0 : selectedTarget.key === 'china' ? 6 : selectedTarget.key === 'liaoning_overview' ? 9 : 12}" --maxzoom="{selectedTarget.key === 'world' ? 5 : selectedTarget.key === 'china' ? 8 : selectedTarget.key === 'liaoning_overview' ? 11 : 17}" --output="dist/{selectedTarget.key}.mbtiles" --tile_source="opentopomap"
           </code>
         </div>
 
