@@ -5,8 +5,8 @@ import { ChatMessage } from "../types";
 const SUGGESTED_PROMPTS = [
   {
     icon: <Layers className="w-3.5 h-3.5" />,
-    label: "Planetiler speed explanation",
-    prompt: "How does Planetiler achieve sub-minute speeds in vector tile generation compared to tilemaker or openmaptiles?"
+    label: "OpenTopoMap tile downloader",
+    prompt: "How does the direct multi-threaded Python script download, cache, and pack OpenTopoMap PNG tiles into offline MBTiles databases?"
   },
   {
     icon: <Code className="w-3.5 h-3.5" />,
@@ -15,8 +15,8 @@ const SUGGESTED_PROMPTS = [
   },
   {
     icon: <MapPin className="w-3.5 h-3.5" />,
-    label: "Crop custom town with Osmium",
-    prompt: "Show me the exact osmium command to crop a town with coordinate bounding box [124.3, 40.3, 125.7, 41.1] from liaoning-latest.osm.pbf."
+    label: "Generate bounding box raster map",
+    prompt: "Show me the exact python command to download tiles with coordinate bounding box [124.3, 40.3, 125.7, 41.1] using the map generator."
   }
 ];
 
@@ -25,7 +25,7 @@ export default function GisAssistant() {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I am the CyberTrail GIS Pipeline Assistant. I am specialized in OpenStreetMap database operations, Planetiler compilations, bounding box extractions, and offline MapLibre/Mapbox mobile configurations. Ask me any cartography or offline tiles question!",
+      content: "Hello! I am the CyberTrail GIS Pipeline Assistant. I am specialized in direct multi-threaded raster tile downloading, OpenTopoMap coordinate projections, on-the-fly PNG8 color quantization, offline MBTiles compilation, and mobile map integration. Ask me any cartography or offline tiles question!",
       timestamp: new Date()
     }
   ]);

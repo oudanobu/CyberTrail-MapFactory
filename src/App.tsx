@@ -25,54 +25,54 @@ import GisAssistant from "./components/GisAssistant";
 const MAP_TARGETS: MapTarget[] = [
   {
     key: "world",
-    name: "World Basemap",
+    name: "World Overview",
     chineseName: "全球底图",
-    sourceUrl: "https://download.geofabrik.de/index.html",
+    sourceUrl: "https://tile.opentopomap.org/",
     bbox: [-180.0, -85.0, 180.0, 85.0],
     description: "Low-resolution global overview containing borders, major water bodies, and continental labels (Zoom 0-5) in Raster PNG format.",
     layerType: "country",
-    estimatedSize: "35.4 MB",
-    compileTimeSec: 45
+    estimatedSize: "18.5 MB",
+    compileTimeSec: 35
   },
   {
-    key: "china_overview",
+    key: "china",
     name: "China Overview",
     chineseName: "中国概况图",
-    sourceUrl: "https://download.geofabrik.de/asia/china-latest.osm.pbf",
+    sourceUrl: "https://tile.opentopomap.org/",
     bbox: [73.66, 18.16, 135.05, 53.56],
     description: "Medium-resolution national coverage containing administrative lines, national expressways, and primary capital nodes (Zoom 6-8) in Raster PNG format.",
     layerType: "country",
-    estimatedSize: "125.8 MB",
-    compileTimeSec: 120
+    estimatedSize: "45.2 MB",
+    compileTimeSec: 60
   },
   {
-    key: "liaoning",
+    key: "dandong_overview",
     name: "Dandong Overview",
     chineseName: "丹东概况图",
-    sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
+    sourceUrl: "https://tile.opentopomap.org/",
     bbox: [123.38, 39.73, 125.70, 41.20],
     description: "Regional overview containing roads, transit lines, and county-level boundaries for Dandong region (Zoom 9-11) in Raster PNG format.",
-    parent: "china_overview",
+    parent: "china",
     layerType: "province",
-    estimatedSize: "45.2 MB",
-    compileTimeSec: 80
+    estimatedSize: "12.3 MB",
+    compileTimeSec: 25
   },
   {
-    key: "dandong",
+    key: "dandong_detail",
     name: "Dandong Detailed",
     chineseName: "丹东全域详图",
-    sourceUrl: "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf",
+    sourceUrl: "https://tile.opentopomap.org/",
     bbox: [123.38, 39.73, 125.70, 41.20],
     description: "High-resolution detailed tileset (Zoom 12-16) covering Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian in Raster PNG format.",
-    parent: "liaoning",
+    parent: "dandong_overview",
     layerType: "city",
-    estimatedSize: "320.5 MB",
-    compileTimeSec: 350
+    estimatedSize: "145.8 MB",
+    compileTimeSec: 180
   }
 ];
 
 export default function App() {
-  const [selectedTarget, setSelectedTarget] = useState<MapTarget>(MAP_TARGETS[3]); // Default to Dandong
+  const [selectedTarget, setSelectedTarget] = useState<MapTarget>(MAP_TARGETS[3]); // Default to Dandong Detailed
   const [activeBbox, setActiveBbox] = useState<[number, number, number, number]>(MAP_TARGETS[3].bbox);
   const [activeTab, setActiveTab] = useState<'editor' | 'cli' | 'guide'>('editor');
   const [activeFile, setActiveFile] = useState<'workflow' | 'script' | 'optimizer' | 'json'>('workflow');
@@ -97,19 +97,20 @@ export default function App() {
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       map_target:
-        description: 'Compile Target (world, china_overview, liaoning, dandong, or all)'
+        description: 'Compile Target (world, china, dandong_overview, dandong_detail, or all)'
         required: true
-        default: 'dandong'
+        default: 'all'
         type: choice
         options:
           - world
-          - china_overview
-          - liaoning
-          - dandong
+          - china
+          - dandong_overview
+          - dandong_detail
           - all
 
 permissions:
@@ -117,49 +118,96 @@ permissions:
 
 jobs:
   build-maps:
+    name: Build Resilient Raster PNG Map Targets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install GIS Dependencies
+      - name: Install System Dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y osmium-tool sqlite3
+          sudo apt-get update && sudo apt-get install -y wget sqlite3
           pip3 install Pillow --break-system-packages
 
-      - name: Slicing and Generating Raster MBTiles
+      - name: Create Map Working Directories
         run: |
-          mkdir -p dist data/sources maps
-          # Run Slicing & optimization
-          bash maps/crop_dandong.sh
-          python3 maps/raster_optimizer.py dist/dandong.mbtiles`
+          mkdir -p data/tile_cache dist maps
+          chmod +x maps/*.sh || true
+
+      - name: Establish Target Selection
+        id: target-selector
+        run: |
+          TARGET="\${{ github.event.inputs.map_target }}"
+          if [ -z "$TARGET" ]; then
+            TARGET="all"
+          fi
+          echo "selected_target=\$TARGET" >> "\$GITHUB_OUTPUT"
+
+      - name: Cache Tile Assets
+        uses: actions/cache@v4
+        with:
+          path: data/tile_cache
+          key: map-tiles-cache-\${{ hashFiles('maps/bounding_boxes.json') }}
+          restore-keys: |
+            map-tiles-cache-
+
+      - name: Execute Resilient Tile Compilation Pipeline
+        run: |
+          TARGET="\${{ steps.target-selector.outputs.selected_target }}"
+          bash maps/build_all_raster_maps.sh "\$TARGET"
+
+      - name: Verify Final MBTiles Integrity & Metadata
+        run: |
+          ls -lh dist/
+          for f in dist/*.mbtiles; do
+            if [ -f "\$f" ]; then
+              sqlite3 "\$f" "SELECT zoom_level, COUNT(*) FROM tiles GROUP BY zoom_level;"
+            fi
+          done`
       };
     }
     if (activeFile === 'script') {
       return {
-        name: "maps/crop_dandong.sh",
+        name: "maps/build_all_raster_maps.sh",
         language: "bash",
         code: `#!/usr/bin/env bash
-# CyberTrail-MapFactory: Crop Dandong Region (Consolidated BBOX)
-# Covers: Zhenxing, Yuanbao, Zhenan, Donggang, Fengcheng, and Kuandian
-
+# CyberTrail-MapFactory: Build and Optimize Offline Raster PNG MBTiles
 set -euo pipefail
-mkdir -p data
 
-BBOX="123.38,39.73,125.70,41.20"
-LIAONING_PBF="data/liaoning.osm.pbf"
-DANDONG_PBF="data/dandong.osm.pbf"
+TARGET=\${1:-"all"}
+CONCURRENCY=8
 
-if [ ! -f "$LIAONING_PBF" ]; then
-    echo "[*] Liaoning source missing. Downloading..."
-    wget -c "https://download.geofabrik.de/asia/china/liaoning-latest.osm.pbf" -O "$LIAONING_PBF"
-fi
+echo "=========================================================="
+echo " CyberTrail MapFactory: Initiating Direct Map Generation Pipeline"
+echo " Target Package: \$TARGET"
+echo " Concurrency: \$CONCURRENCY"
+echo "=========================================================="
 
-echo "[*] Slicing consolidated Dandong region from Liaoning dataset..."
-osmium extract --bbox "$BBOX" "$LIAONING_PBF" -o "$DANDONG_PBF" --strategy=complete_ways --overwrite
-echo "[+] Slicing complete! Output written to: $DANDONG_PBF"`
+mkdir -p dist data/tile_cache
+
+compile_and_optimize_mbtiles() {
+  local KEY=\$1
+  local NAME=\$2
+  local BBOX=\$3
+  local MINZ=\$4
+  local MAXZ=\$5
+  local OUTPUT="dist/\${KEY}.mbtiles"
+
+  python3 maps/generate_raster_mbtiles.py \\
+    --bbox "\$BBOX" \\
+    --minzoom "\$MINZ" \\
+    --maxzoom "\$MAXZ" \\
+    --output "\$OUTPUT" \\
+    --concurrency "\$CONCURRENCY" \\
+    --cache_dir "data/tile_cache"
+
+  python3 maps/raster_optimizer.py "\$OUTPUT"
+}`
       };
     }
     if (activeFile === 'optimizer') {
@@ -221,25 +269,25 @@ def optimize_and_deduplicate(db_path):
       language: "json",
       code: `{
   "world": {
-    "name": "World (全球底图)",
+    "name": "World Overview (全球底图)",
     "bbox": [-180.0, -85.0, 180.0, 85.0],
     "zoom_range": "0-5",
     "format": "png"
   },
-  "china_overview": {
+  "china": {
     "name": "China Overview (中国概况底图)",
     "bbox": [73.66, 18.16, 135.05, 53.56],
     "zoom_range": "6-8",
     "format": "png"
   },
-  "liaoning": {
-    "name": "Liaoning Province (辽宁省概况底图)",
-    "bbox": [118.84, 38.71, 125.79, 43.43],
+  "dandong_overview": {
+    "name": "Dandong Overview (丹东概况图)",
+    "bbox": [123.38, 39.73, 125.70, 41.20],
     "zoom_range": "9-11",
     "format": "png"
   },
-  "dandong": {
-    "name": "Dandong Region Detail (丹东全境详图)",
+  "dandong_detail": {
+    "name": "Dandong Detailed (丹东全域详图)",
     "bbox": [123.38, 39.73, 125.70, 41.20],
     "zoom_range": "12-16",
     "format": "png"
@@ -549,7 +597,7 @@ if (mbtilesFile.exists()) {
                   onClick={() => setActiveFile('script')}
                   className={`px-2 py-1 rounded transition ${activeFile === 'script' ? 'bg-slate-800 text-white' : 'hover:text-slate-200'}`}
                 >
-                  crop_dandong.sh
+                  build_all_raster_maps.sh
                 </button>
                 <button
                   onClick={() => setActiveFile('optimizer')}

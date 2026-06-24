@@ -1,0 +1,17 @@
+{
+  "tile_source": "opentopomap",
+  "sources": {
+    "opentopomap": {
+      "url": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+      "backup_url": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}.png"
+    },
+    "local": {
+      "url": "http://localhost:3000/tiles/{z}/{x}/{y}.png",
+      "backup_url": "http://localhost:3000/tiles-backup/{z}/{x}/{y}.png"
+    },
+    "selfhosted": {
+      "url": "https://tiles.selfhosted.org/{z}/{x}/{y}.png",
+      "backup_url": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}.png"
+    }
+  }
+}

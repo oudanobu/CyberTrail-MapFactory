@@ -18,13 +18,13 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
     if (selectedTarget.key === "world") {
       return { lonMin: -180, lonMax: 180, latMin: -85, latMax: 85 };
     }
-    if (selectedTarget.key === "china_overview") {
+    if (selectedTarget.key === "china") {
       return { lonMin: 70, lonMax: 150, latMin: 15, latMax: 55 };
     }
-    if (selectedTarget.key === "liaoning") {
+    if (selectedTarget.key === "dandong_overview") {
       return { lonMin: 117, lonMax: 127, latMin: 37, latMax: 45 };
     }
-    if (selectedTarget.key === "dandong") {
+    if (selectedTarget.key === "dandong_detail") {
       return { lonMin: 121.5, lonMax: 127.5, latMin: 38.5, latMax: 42.0 };
     }
     return { lonMin: 110, lonMax: 135, latMin: 30, latMax: 48 };
@@ -249,37 +249,37 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
       {/* Reactive Export Code Snippets */}
       <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mt-4 mb-2">Automated CLI Commands Output</h4>
       <div className="space-y-2">
-        {/* Osmium Crop */}
+        {/* Python Configured Downloader */}
         <div className="bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[10px] text-emerald-400 relative group select-all">
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
             <button
-              onClick={() => copyToClipboard(`osmium extract --bbox ${minLon.toFixed(3)},${minLat.toFixed(3)},${maxLon.toFixed(3)},${maxLat.toFixed(3)} parent.osm.pbf -o ${selectedTarget.key}.osm.pbf --strategy=complete_ways --overwrite`, 'osmium')}
+              onClick={() => copyToClipboard(`python3 maps/generate_raster_mbtiles.py --bbox ${minLon.toFixed(3)},${minLat.toFixed(3)},${maxLon.toFixed(3)},${maxLat.toFixed(3)} --minzoom ${selectedTarget.key === 'world' ? 0 : selectedTarget.key === 'china' ? 6 : selectedTarget.key === 'dandong_overview' ? 9 : 12} --maxzoom ${selectedTarget.key === 'world' ? 5 : selectedTarget.key === 'china' ? 8 : selectedTarget.key === 'dandong_overview' ? 11 : 16} --output dist/${selectedTarget.key}.mbtiles --tile_source opentopomap`, 'python-source')}
               className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
               title="Copy Command"
             >
-              {copiedKey === 'osmium' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              {copiedKey === 'python-source' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
             </button>
           </div>
-          <span className="text-[9px] text-slate-500 uppercase block mb-1">Osmium Slice command</span>
+          <span className="text-[9px] text-slate-500 uppercase block mb-1">Direct Download Command (with config tile_source)</span>
           <code className="text-[10px] leading-relaxed break-all">
-            osmium extract --bbox {minLon.toFixed(3)},{minLat.toFixed(3)},{maxLon.toFixed(3)},{maxLat.toFixed(3)} parent.osm.pbf -o {selectedTarget.key}.osm.pbf --strategy=complete_ways --overwrite
+            python3 maps/generate_raster_mbtiles.py --bbox {minLon.toFixed(3)},{minLat.toFixed(3)},{maxLon.toFixed(3)},{maxLat.toFixed(3)} --minzoom {selectedTarget.key === 'world' ? 0 : selectedTarget.key === 'china' ? 6 : selectedTarget.key === 'dandong_overview' ? 9 : 12} --maxzoom {selectedTarget.key === 'world' ? 5 : selectedTarget.key === 'china' ? 8 : selectedTarget.key === 'dandong_overview' ? 11 : 16} --output dist/{selectedTarget.key}.mbtiles --tile_source opentopomap
           </code>
         </div>
 
-        {/* Planetiler compiler */}
+        {/* Bash Automated Compilation wrapper */}
         <div className="bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[10px] text-sky-400 relative group select-all">
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
             <button
-              onClick={() => copyToClipboard(`java -Xmx4g -jar planetiler.jar --osm-path=${selectedTarget.key}.osm.pbf --output=dist/${selectedTarget.key}.mbtiles --nodemap-type=sparse --force`, 'planetiler')}
+              onClick={() => copyToClipboard(`bash maps/build_all_raster_maps.sh ${selectedTarget.key}`, 'bash-all')}
               className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
               title="Copy Command"
             >
-              {copiedKey === 'planetiler' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              {copiedKey === 'bash-all' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
             </button>
           </div>
-          <span className="text-[9px] text-slate-500 uppercase block mb-1">Planetiler compile command</span>
+          <span className="text-[9px] text-slate-500 uppercase block mb-1">Automated Bash Pipeline Command</span>
           <code className="text-[10px] leading-relaxed break-all">
-            java -Xmx4g -jar planetiler.jar --osm-path={selectedTarget.key}.osm.pbf --output=dist/{selectedTarget.key}.mbtiles --nodemap-type=sparse --force
+            bash maps/build_all_raster_maps.sh {selectedTarget.key}
           </code>
         </div>
       </div>
