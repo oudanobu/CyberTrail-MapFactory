@@ -21,6 +21,9 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
     if (selectedTarget.key === "china") {
       return { lonMin: 70, lonMax: 150, latMin: 15, latMax: 55 };
     }
+    if (selectedTarget.key === "japan") {
+      return { lonMin: 121.0, lonMax: 155.0, latMin: 20.0, latMax: 46.0 };
+    }
     if (selectedTarget.key === "liaoning") {
       return { lonMin: 116.0, lonMax: 127.0, latMin: 37.0, latMax: 45.0 };
     }
@@ -101,7 +104,7 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
           </p>
         </div>
         <div className="flex gap-2 text-[10px] bg-slate-800/60 px-2 py-1 rounded border border-slate-700/60 font-mono text-slate-400">
-          <span className="text-emerald-400 block">VIEWPORT ZOOM_LEVEL: {selectedTarget.layerType === 'city' ? "HIGH" : "STD"}</span>
+          <span className="text-emerald-400 block">VIEWPORT ZOOM_LEVEL: {selectedTarget.layerType === 'county_hd' ? "HIGH" : "STD"}</span>
         </div>
       </div>
 
@@ -260,8 +263,8 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
             <button
               onClick={() => {
-                const minZ = selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : selectedTarget.layerType === 'city' ? 12 : 17;
-                const maxZ = selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : selectedTarget.layerType === 'city' ? 16 : 20;
+                const minZ = selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : 12;
+                const maxZ = selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : 22;
                 copyToClipboard(`python3 maps/generate_raster_mbtiles.py --bbox="${minLon.toFixed(3)},${minLat.toFixed(3)},${maxLon.toFixed(3)},${maxLat.toFixed(3)}" --minzoom="${minZ}" --maxzoom="${maxZ}" --output="dist/${selectedTarget.key}.mbtiles" --tile_source="opentopomap"`, 'python-source');
               }}
               className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
@@ -273,8 +276,8 @@ export default function InteractiveMap({ selectedTarget, activeBbox, onBboxChang
           <span className="text-[9px] text-slate-500 uppercase block mb-1">Direct Download Command (with config tile_source)</span>
           <code className="text-[10px] leading-relaxed break-all">
             {(() => {
-              const minZ = selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : selectedTarget.layerType === 'city' ? 12 : 17;
-              const maxZ = selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : selectedTarget.layerType === 'city' ? 16 : 20;
+              const minZ = selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : 12;
+              const maxZ = selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : 22;
               return `python3 maps/generate_raster_mbtiles.py --bbox="${minLon.toFixed(3)},${minLat.toFixed(3)},${maxLon.toFixed(3)},${maxLat.toFixed(3)}" --minzoom="${minZ}" --maxzoom="${maxZ}" --output="dist/${selectedTarget.key}.mbtiles" --tile_source="opentopomap"`;
             })()}
           </code>

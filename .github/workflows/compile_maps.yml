@@ -6,23 +6,26 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      map_target:
-        description: 'Compile Target (world, china, liaoning, dandong, zhenxing_hd, yuanbao_hd, zhenan_hd, donggang_hd, fengcheng_hd, kuandian_hd, or all)'
+      build_target:
+        description: 'Compile Target (build=all, build=country, build=province, build=admin3, or build=<single_key>)'
         required: true
-        default: 'all'
+        default: 'build=all'
         type: choice
         options:
-          - world
-          - china
-          - liaoning
-          - dandong
-          - zhenxing_hd
-          - yuanbao_hd
-          - zhenan_hd
-          - donggang_hd
-          - fengcheng_hd
-          - kuandian_hd
-          - all
+          - build=all
+          - build=country
+          - build=province
+          - build=admin3
+          - build=world
+          - build=china
+          - build=japan
+          - build=liaoning
+          - build=zhenxing_hd
+          - build=yuanbao_hd
+          - build=zhenan_hd
+          - build=donggang_hd
+          - build=fengcheng_hd
+          - build=kuandian_hd
 
 permissions:
   contents: write
@@ -53,51 +56,31 @@ jobs:
       - name: Establish Target Selection
         id: target-selector
         run: |
-          TARGET="${{ github.event.inputs.map_target }}"
+          TARGET="${{ github.event.inputs.build_target }}"
           if [ -z "$TARGET" ]; then
-            TARGET="all"
+            TARGET="build=all"
           fi
           echo "selected_target=$TARGET" >> "$GITHUB_OUTPUT"
-          echo "Selected Compilation Target: $TARGET"
 
       - name: Cache Tile Assets
         uses: actions/cache@v4
         with:
           path: data/tile_cache
-          key: map-tiles-cache-${{ hashFiles('maps/bounding_boxes.json') }}
+          key: map-tiles-cache-${{ hashFiles('maps/*.json') }}
           restore-keys: |
             map-tiles-cache-
 
       - name: Execute Resilient Tile Compilation Pipeline
         run: |
-          echo "===> Commencing Direct Web Map Tile Fetching & Quantization <==="
           TARGET="${{ steps.target-selector.outputs.selected_target }}"
           bash maps/build_all_raster_maps.sh "$TARGET"
 
       - name: Verify Final MBTiles Integrity & Metadata
         run: |
-          echo "=== Built Raster PNG Map Archives ==="
           ls -lh dist/
           for f in dist/*.mbtiles; do
             if [ -f "$f" ]; then
-              echo "Database: $f"
-              sqlite3 "$f" "SELECT name, value FROM metadata WHERE name IN ('format', 'type', 'bounds', 'minzoom', 'maxzoom', 'tile_source');"
+              echo "Verifying database integrity for $f"
               sqlite3 "$f" "SELECT zoom_level, COUNT(*) FROM tiles GROUP BY zoom_level;"
             fi
           done
-
-      - name: Create GitHub Release and Upload Assets
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          RELEASE_TAG="maps-raster-$(date +'%Y%m%d-%H%M')"
-          echo "Creating repository release: $RELEASE_TAG"
-          
-          if [ -n "$(ls -A dist/*.mbtiles 2>/dev/null)" ]; then
-            gh release create "$RELEASE_TAG" dist/*.mbtiles \
-              --title "CyberTrail Raster Maps $RELEASE_TAG" \
-              --notes "Production-ready Resilient Offline Raster PNG MBTiles. Color optimized to space-efficient PNG8 format. Includes World (0-5), China (6-8), Liaoning Overview (9-11), Dandong Detail (12-16), and District UHDs (17-20)."
-          else
-            echo "No compiled mbtiles artifacts found! Release creation cancelled."
-            exit 1
-          fi

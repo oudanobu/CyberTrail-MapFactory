@@ -1,0 +1,8 @@
+{
+  "name": "Kuandian HD (L3三级行政区高清)",
+  "output": "dist/kuandian_hd.mbtiles",
+  "bbox": "124.30,40.35,125.70,41.20",
+  "minzoom": 12,
+  "maxzoom": 22,
+  "tile_source": "opentopomap"
+}

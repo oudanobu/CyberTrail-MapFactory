@@ -1,0 +1,8 @@
+{
+  "name": "China Overview (L1国家概况图)",
+  "output": "dist/china.mbtiles",
+  "bbox": "73.66,18.16,135.05,53.56",
+  "minzoom": 6,
+  "maxzoom": 8,
+  "tile_source": "opentopomap"
+}

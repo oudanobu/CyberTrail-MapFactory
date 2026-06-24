@@ -1,0 +1,8 @@
+{
+  "name": "Liaoning Overview (L2省级概况图)",
+  "output": "dist/liaoning.mbtiles",
+  "bbox": "118.84,38.71,125.79,43.43",
+  "minzoom": 9,
+  "maxzoom": 11,
+  "tile_source": "opentopomap"
+}

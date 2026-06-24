@@ -1,0 +1,8 @@
+{
+  "name": "Japan Overview (L1国家概况图)",
+  "output": "dist/japan.mbtiles",
+  "bbox": "122.93,20.42,153.98,45.55",
+  "minzoom": 6,
+  "maxzoom": 8,
+  "tile_source": "opentopomap"
+}

@@ -46,6 +46,17 @@ const MAP_TARGETS: MapTarget[] = [
     compileTimeSec: 60
   },
   {
+    key: "japan",
+    name: "Japan Overview",
+    chineseName: "L1国家概况图",
+    sourceUrl: "https://tile.opentopomap.org/",
+    bbox: [122.93, 20.42, 153.98, 45.55],
+    description: "National scale overview covering major Japanese islands, municipal boundaries, transport networks, and mountainous terrain accents (Zoom 6-8) in Raster PNG format.",
+    layerType: "country",
+    estimatedSize: "32.1 MB",
+    compileTimeSec: 40
+  },
+  {
     key: "liaoning",
     name: "Liaoning Overview",
     chineseName: "L2省级概况图",
@@ -58,94 +69,86 @@ const MAP_TARGETS: MapTarget[] = [
     compileTimeSec: 45
   },
   {
-    key: "dandong",
-    name: "Dandong Detail",
-    chineseName: "L3市级详细图",
-    sourceUrl: "https://tile.opentopomap.org/",
-    bbox: [123.38, 39.73, 125.70, 41.20],
-    description: "City level detailed maps including suburban grids, town centers, trunk roads, watercourses, and local terrain accents (Zoom 12-16) in Raster PNG format.",
-    parent: "liaoning",
-    layerType: "city",
-    estimatedSize: "85.2 MB",
-    compileTimeSec: 110
-  },
-  {
     key: "zhenxing_hd",
-    name: "Zhenxing UHD",
-    chineseName: "L4三级超精细图",
+    name: "Zhenxing HD",
+    chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [124.30, 40.05, 124.45, 40.16],
-    description: "Ultra-high definition (UHD) grid targeting Zhenxing urban center, detailed neighborhood lanes, riverside pathways, and local POIs (Zoom 17-20) in space-saving PNG8.",
-    parent: "dandong",
+    description: "Ultra-high precision topographic grid targeting Zhenxing urban center, detailed neighborhood lanes, building footprints, and park walks (Zoom 12-22) in space-saving PNG8 format.",
+    parent: "liaoning",
     layerType: "county_hd",
-    estimatedSize: "35.6 MB",
-    compileTimeSec: 45
+    estimatedSize: "52.8 MB",
+    compileTimeSec: 75
   },
   {
     key: "yuanbao_hd",
-    name: "Yuanbao UHD",
-    chineseName: "L4三级超精细图",
+    name: "Yuanbao HD",
+    chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [124.34, 40.11, 124.44, 40.19],
-    description: "Ultra-high definition (UHD) grid targeting Yuanbao commercial center, high-density residential roads, and mountain trails (Zoom 17-20) in space-saving PNG8.",
-    parent: "dandong",
+    description: "Ultra-high precision topographic grid targeting Yuanbao commercial center, high-density residential grids, mountain tracks, and street level features (Zoom 12-22) in space-saving PNG8 format.",
+    parent: "liaoning",
     layerType: "county_hd",
-    estimatedSize: "28.3 MB",
-    compileTimeSec: 35
+    estimatedSize: "43.0 MB",
+    compileTimeSec: 60
   },
   {
     key: "zhenan_hd",
-    name: "Zhenan UHD",
-    chineseName: "L4三级超精细图",
+    name: "Zhenan HD",
+    chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [124.25, 40.08, 124.62, 40.32],
-    description: "Ultra-high definition (UHD) grid targeting Zhenan district, covering transport corridors, mountain villages, and industrial sites (Zoom 17-20) in space-saving PNG8.",
-    parent: "dandong",
+    description: "Ultra-high precision topographic grid targeting Zhenan district, covering transport corridors, valleys, local villages, and industrial facility footprints (Zoom 12-22) in space-saving PNG8 format.",
+    parent: "liaoning",
     layerType: "county_hd",
-    estimatedSize: "52.1 MB",
-    compileTimeSec: 65
+    estimatedSize: "78.4 MB",
+    compileTimeSec: 110
   },
   {
     key: "donggang_hd",
-    name: "Donggang UHD",
-    chineseName: "L4三级超精细图",
+    name: "Donggang HD",
+    chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [123.38, 39.73, 124.35, 40.15],
-    description: "Ultra-high definition (UHD) grid targeting Donggang coastal plains, deepwater ports, maritime paths, and shoreline grids (Zoom 17-20) in space-saving PNG8.",
-    parent: "dandong",
+    description: "Ultra-high precision topographic grid targeting Donggang coastal plains, ports, shipping routes, shoreline grids, and custom mountain pathways (Zoom 12-22) in space-saving PNG8 format.",
+    parent: "liaoning",
     layerType: "county_hd",
-    estimatedSize: "92.4 MB",
-    compileTimeSec: 120
+    estimatedSize: "136.6 MB",
+    compileTimeSec: 180
   },
   {
     key: "fengcheng_hd",
-    name: "Fengcheng UHD",
-    chineseName: "L4三级超精细图",
+    name: "Fengcheng HD",
+    chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [123.55, 40.15, 124.50, 40.78],
-    description: "Ultra-high definition (UHD) grid targeting Fengcheng, containing complex mountain peaks, tourist spots, highways, and valleys (Zoom 17-20) in space-saving PNG8.",
-    parent: "dandong",
+    description: "Ultra-high precision topographic grid targeting Fengcheng, containing complex mountain peaks, tourist spots, highways, forest grids, and trails (Zoom 12-22) in space-saving PNG8 format.",
+    parent: "liaoning",
     layerType: "county_hd",
-    estimatedSize: "115.8 MB",
-    compileTimeSec: 150
+    estimatedSize: "169.0 MB",
+    compileTimeSec: 220
   },
   {
     key: "kuandian_hd",
-    name: "Kuandian UHD",
-    chineseName: "L4三级超精细图",
+    name: "Kuandian HD",
+    chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [124.30, 40.35, 125.70, 41.20],
-    description: "Ultra-high definition (UHD) grid targeting Kuandian, highlighting heavy forest topography, reservoirs, shoreline tracks, and scenic reserves (Zoom 17-20) in space-saving PNG8.",
-    parent: "dandong",
+    description: "Ultra-high precision topographic grid targeting Kuandian, highlighting heavy forest reserves, reservoirs, mountain tracks, and hiking paths (Zoom 12-22) in space-saving PNG8 format.",
+    parent: "liaoning",
     layerType: "county_hd",
-    estimatedSize: "158.4 MB",
-    compileTimeSec: 195
+    estimatedSize: "224.8 MB",
+    compileTimeSec: 280
   }
 ];
 
 export default function App() {
-  const [selectedTarget, setSelectedTarget] = useState<MapTarget>(MAP_TARGETS[3]); // Default to Dandong Detail (Index 3)
-  const [activeBbox, setActiveBbox] = useState<[number, number, number, number]>(MAP_TARGETS[3].bbox);
+  const [selectedTarget, setSelectedTarget] = useState<MapTarget>(
+    MAP_TARGETS.find(t => t.key === "liaoning") || MAP_TARGETS[3]
+  );
+  const [activeBbox, setActiveBbox] = useState<[number, number, number, number]>(
+    (MAP_TARGETS.find(t => t.key === "liaoning") || MAP_TARGETS[3]).bbox
+  );
   const [activeTab, setActiveTab] = useState<'editor' | 'cli' | 'guide'>('editor');
   const [activeFile, setActiveFile] = useState<'workflow' | 'script' | 'optimizer' | 'json'>('workflow');
   const [copiedTextKey, setCopiedTextKey] = useState<string | null>(null);
@@ -279,41 +282,42 @@ jobs:
     }
     if (activeFile === 'script') {
       return {
-        name: "maps/build_all_raster_maps.sh",
-        language: "bash",
-        code: `#!/usr/bin/env bash
-# CyberTrail-MapFactory: Build and Optimize Offline Raster PNG MBTiles
-set -euo pipefail
+        name: "maps/compile_by_config.py",
+        language: "python",
+        code: `#!/usr/bin/env python3
+"""
+CyberTrail-MapFactory: Configure-driven Multitarget Map Compilation Controller.
+"""
+import os
+import sys
+import json
+import subprocess
+import sqlite3
 
-TARGET=\${1:-"all"}
-CONCURRENCY=8
+MAPS_DIR = os.path.dirname(os.path.abspath(__file__))
+WORKSPACE_ROOT = os.path.dirname(MAPS_DIR)
 
-echo "=========================================================="
-echo " CyberTrail MapFactory: Initiating Direct Map Generation Pipeline"
-echo " Target Package: \$TARGET"
-echo " Concurrency: \$CONCURRENCY"
-echo "=========================================================="
+CATEGORIES = {
+    "country": ["china", "japan"],
+    "province": ["liaoning"],
+    "admin3": ["zhenxing_hd", "yuanbao_hd", "zhenan_hd", "donggang_hd", "fengcheng_hd", "kuandian_hd"],
+    "all": ["world", "china", "japan", "liaoning", "zhenxing_hd", "yuanbao_hd", "zhenan_hd", "donggang_hd", "fengcheng_hd", "kuandian_hd"]
+}
 
-mkdir -p dist data/tile_cache
+def clean_target(target):
+    if target.startswith("build="):
+        return target[len("build="):]
+    return target
 
-compile_and_optimize_mbtiles() {
-  local KEY=\$1
-  local NAME=\$2
-  local BBOX=\$3
-  local MINZ=\$4
-  local MAXZ=\$5
-  local OUTPUT="dist/\${KEY}.mbtiles"
-
-  python3 maps/generate_raster_mbtiles.py \\
-    --bbox="\$BBOX" \\
-    --minzoom="\$MINZ" \\
-    --maxzoom="\$MAXZ" \\
-    --output="\$OUTPUT" \\
-    --concurrency="\$CONCURRENCY" \\
-    --cache_dir="data/tile_cache"
-
-  python3 maps/raster_optimizer.py "\$OUTPUT"
-}`
+def compile_and_optimize(config_key):
+    config_path = os.path.join(MAPS_DIR, f"{config_key}.json")
+    with open(config_path, "r", encoding="utf-8") as f:
+        cfg = json.load(f)
+        
+    print(f"[BUILDING] Map Package: {cfg.get('name')} ({config_key})")
+    # Execute generate_raster_mbtiles.py ...
+    # Execute raster_optimizer.py ...
+    # Verify DB constraints (tiles_count >= 10) ...`
       };
     }
     if (activeFile === 'optimizer') {
@@ -371,69 +375,15 @@ def optimize_and_deduplicate(db_path):
       };
     }
     return {
-      name: "maps/bounding_boxes.json",
+      name: `maps/${selectedTarget.key}.json`,
       language: "json",
       code: `{
-  "world": {
-    "name": "World Overview (L0全球底图)",
-    "bbox": [-180.0, -85.0, 180.0, 85.0],
-    "zoom_range": "0-5",
-    "format": "png"
-  },
-  "china": {
-    "name": "China Overview (L1国家概况图)",
-    "bbox": [73.66, 18.16, 135.05, 53.56],
-    "zoom_range": "6-8",
-    "format": "png"
-  },
-  "liaoning": {
-    "name": "Liaoning Overview (L2省级概况图)",
-    "bbox": [118.84, 38.71, 125.79, 43.43],
-    "zoom_range": "9-11",
-    "format": "png"
-  },
-  "dandong": {
-    "name": "Dandong Detail (L3市级详细图)",
-    "bbox": [123.38, 39.73, 125.70, 41.20],
-    "zoom_range": "12-16",
-    "format": "png"
-  },
-  "zhenxing_hd": {
-    "name": "Zhenxing UHD (L4三级超精细图)",
-    "bbox": [124.30, 40.05, 124.45, 40.16],
-    "zoom_range": "17-20",
-    "format": "png"
-  },
-  "yuanbao_hd": {
-    "name": "Yuanbao UHD (L4三级超精细图)",
-    "bbox": [124.34, 40.11, 124.44, 40.19],
-    "zoom_range": "17-20",
-    "format": "png"
-  },
-  "zhenan_hd": {
-    "name": "Zhenan UHD (L4三级超精细图)",
-    "bbox": [124.25, 40.08, 124.62, 40.32],
-    "zoom_range": "17-20",
-    "format": "png"
-  },
-  "donggang_hd": {
-    "name": "Donggang UHD (L4三级超精细图)",
-    "bbox": [123.38, 39.73, 124.35, 40.15],
-    "zoom_range": "17-20",
-    "format": "png"
-  },
-  "fengcheng_hd": {
-    "name": "Fengcheng UHD (L4三级超精细图)",
-    "bbox": [123.55, 40.15, 124.50, 40.78],
-    "zoom_range": "17-20",
-    "format": "png"
-  },
-  "kuandian_hd": {
-    "name": "Kuandian UHD (L4三级超精细图)",
-    "bbox": [124.30, 40.35, 125.70, 41.20],
-    "zoom_range": "17-20",
-    "format": "png"
-  }
+  "name": "${selectedTarget.name} (${selectedTarget.chineseName})",
+  "output": "dist/${selectedTarget.key}.mbtiles",
+  "bbox": "${selectedTarget.bbox.join(',')}",
+  "minzoom": ${selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : 12},
+  "maxzoom": ${selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : 22},
+  "tile_source": "opentopomap"
 }`
     };
   };
@@ -509,19 +459,9 @@ def optimize_and_deduplicate(db_path):
                 </div>
               </div>
 
-              {/* Level 3: City Detailed */}
+              {/* Level 3: County/District HD */}
               <div>
-                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">L3 • City Detailed (Z12-Z16)</span>
-                <div className="space-y-1">
-                  {MAP_TARGETS.filter(t => t.layerType === 'city').map(target => 
-                    renderTargetButton(target, false)
-                  )}
-                </div>
-              </div>
-
-              {/* Level 4: County/District UHD */}
-              <div>
-                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">L4 • County/District UHD (Z17-Z20)</span>
+                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">L3 • County/District HD (Z12-Z22)</span>
                 <div className="space-y-1 pl-1 border-l border-slate-800">
                   {MAP_TARGETS.filter(t => t.layerType === 'county_hd').map(target => 
                     renderTargetButton(target, true)
@@ -550,9 +490,7 @@ def optimize_and_deduplicate(db_path):
                 <span className="text-slate-500 uppercase text-[9px]">Slicing Tool Pipeline</span>
                 <p className="text-slate-200 mt-0.5">
                   {selectedTarget.layerType === 'county_hd' 
-                    ? `L4 Ultra-High Definition BBox Tile Download (Zoom 17-20)` 
-                    : selectedTarget.layerType === 'city' 
-                    ? `L3 City Detailed BBox Tile Download (Zoom 12-16)` 
+                    ? `L3 High Definition BBox Tile Download (Zoom 12-22)` 
                     : `Direct Regional BBox Tile Download`}
                 </p>
               </div>

@@ -1,0 +1,8 @@
+{
+  "name": "World Overview (L0全球底图)",
+  "output": "dist/world.mbtiles",
+  "bbox": "-180,-85,180,85",
+  "minzoom": 0,
+  "maxzoom": 5,
+  "tile_source": "opentopomap"
+}
