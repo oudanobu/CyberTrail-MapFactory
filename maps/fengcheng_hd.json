@@ -2,7 +2,7 @@
   "name": "Fengcheng HD (L3三级行政区高清)",
   "output": "dist/fengcheng_hd.mbtiles",
   "bbox": "123.55,40.15,124.50,40.78",
-  "minzoom": 12,
+  "minzoom": 15,
   "maxzoom": 22,
   "tile_source": "opentopomap"
 }

@@ -1,0 +1,8 @@
+{
+  "name": "Dandong Overview (L3市级概况图)",
+  "output": "dist/dandong.mbtiles",
+  "bbox": "123.38,39.73,125.70,41.20",
+  "minzoom": 12,
+  "maxzoom": 14,
+  "tile_source": "opentopomap"
+}

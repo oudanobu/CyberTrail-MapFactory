@@ -15,7 +15,9 @@ import {
   ShieldCheck,
   ChevronRight,
   HelpCircle,
-  Code
+  Code,
+  Activity,
+  RefreshCw
 } from "lucide-react";
 import { MapTarget } from "./types";
 import InteractiveMap from "./components/InteractiveMap";
@@ -69,12 +71,24 @@ const MAP_TARGETS: MapTarget[] = [
     compileTimeSec: 45
   },
   {
+    key: "dandong",
+    name: "Dandong Overview",
+    chineseName: "L3市级概况图",
+    sourceUrl: "https://tile.opentopomap.org/",
+    bbox: [123.38, 39.73, 125.70, 41.20],
+    description: "City level detailed overview displaying municipal highway systems, major trunk roads, regional railways, and water channels (Zoom 12-14) in Raster PNG format.",
+    parent: "liaoning",
+    layerType: "city",
+    estimatedSize: "18.2 MB",
+    compileTimeSec: 25
+  },
+  {
     key: "zhenxing_hd",
     name: "Zhenxing HD",
     chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [124.30, 40.05, 124.45, 40.16],
-    description: "Ultra-high precision topographic grid targeting Zhenxing urban center, detailed neighborhood lanes, building footprints, and park walks (Zoom 12-22) in space-saving PNG8 format.",
+    description: "Ultra-high precision topographic grid targeting Zhenxing urban center, detailed neighborhood lanes, building footprints, and park walks (Zoom 15-22) in space-saving PNG8 format.",
     parent: "liaoning",
     layerType: "county_hd",
     estimatedSize: "52.8 MB",
@@ -86,7 +100,7 @@ const MAP_TARGETS: MapTarget[] = [
     chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [124.34, 40.11, 124.44, 40.19],
-    description: "Ultra-high precision topographic grid targeting Yuanbao commercial center, high-density residential grids, mountain tracks, and street level features (Zoom 12-22) in space-saving PNG8 format.",
+    description: "Ultra-high precision topographic grid targeting Yuanbao commercial center, high-density residential grids, mountain tracks, and street level features (Zoom 15-22) in space-saving PNG8 format.",
     parent: "liaoning",
     layerType: "county_hd",
     estimatedSize: "43.0 MB",
@@ -98,7 +112,7 @@ const MAP_TARGETS: MapTarget[] = [
     chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [124.25, 40.08, 124.62, 40.32],
-    description: "Ultra-high precision topographic grid targeting Zhenan district, covering transport corridors, valleys, local villages, and industrial facility footprints (Zoom 12-22) in space-saving PNG8 format.",
+    description: "Ultra-high precision topographic grid targeting Zhenan district, covering transport corridors, valleys, local villages, and industrial facility footprints (Zoom 15-22) in space-saving PNG8 format.",
     parent: "liaoning",
     layerType: "county_hd",
     estimatedSize: "78.4 MB",
@@ -110,7 +124,7 @@ const MAP_TARGETS: MapTarget[] = [
     chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [123.38, 39.73, 124.35, 40.15],
-    description: "Ultra-high precision topographic grid targeting Donggang coastal plains, ports, shipping routes, shoreline grids, and custom mountain pathways (Zoom 12-22) in space-saving PNG8 format.",
+    description: "Ultra-high precision topographic grid targeting Donggang coastal plains, ports, shipping routes, shoreline grids, and custom mountain pathways (Zoom 15-22) in space-saving PNG8 format.",
     parent: "liaoning",
     layerType: "county_hd",
     estimatedSize: "136.6 MB",
@@ -122,7 +136,7 @@ const MAP_TARGETS: MapTarget[] = [
     chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [123.55, 40.15, 124.50, 40.78],
-    description: "Ultra-high precision topographic grid targeting Fengcheng, containing complex mountain peaks, tourist spots, highways, forest grids, and trails (Zoom 12-22) in space-saving PNG8 format.",
+    description: "Ultra-high precision topographic grid targeting Fengcheng, containing complex mountain peaks, tourist spots, highways, forest grids, and trails (Zoom 15-22) in space-saving PNG8 format.",
     parent: "liaoning",
     layerType: "county_hd",
     estimatedSize: "169.0 MB",
@@ -134,7 +148,7 @@ const MAP_TARGETS: MapTarget[] = [
     chineseName: "L3三级行政区高清",
     sourceUrl: "https://tile.opentopomap.org/",
     bbox: [124.30, 40.35, 125.70, 41.20],
-    description: "Ultra-high precision topographic grid targeting Kuandian, highlighting heavy forest reserves, reservoirs, mountain tracks, and hiking paths (Zoom 12-22) in space-saving PNG8 format.",
+    description: "Ultra-high precision topographic grid targeting Kuandian, highlighting heavy forest reserves, reservoirs, mountain tracks, and hiking paths (Zoom 15-22) in space-saving PNG8 format.",
     parent: "liaoning",
     layerType: "county_hd",
     estimatedSize: "224.8 MB",
@@ -149,9 +163,29 @@ export default function App() {
   const [activeBbox, setActiveBbox] = useState<[number, number, number, number]>(
     (MAP_TARGETS.find(t => t.key === "liaoning") || MAP_TARGETS[3]).bbox
   );
-  const [activeTab, setActiveTab] = useState<'editor' | 'cli' | 'guide'>('editor');
+  const [activeTab, setActiveTab] = useState<'editor' | 'cli' | 'guide' | 'diagnostic'>('editor');
   const [activeFile, setActiveFile] = useState<'workflow' | 'script' | 'optimizer' | 'json'>('workflow');
   const [copiedTextKey, setCopiedTextKey] = useState<string | null>(null);
+  
+  const [loadingDiagnostic, setLoadingDiagnostic] = useState(false);
+  const [diagnosticData, setDiagnosticData] = useState<any | null>(null);
+
+  const runDiagnostic = async () => {
+    setLoadingDiagnostic(true);
+    try {
+      const res = await fetch("/api/diagnostic");
+      if (res.ok) {
+        const data = await res.json();
+        setDiagnosticData(data);
+      } else {
+        console.error("Failed to run live diagnostics");
+      }
+    } catch (e) {
+      console.error("Diagnostic network error:", e);
+    } finally {
+      setLoadingDiagnostic(false);
+    }
+  };
 
   useEffect(() => {
     setActiveBbox(selectedTarget.bbox);
@@ -381,8 +415,8 @@ def optimize_and_deduplicate(db_path):
   "name": "${selectedTarget.name} (${selectedTarget.chineseName})",
   "output": "dist/${selectedTarget.key}.mbtiles",
   "bbox": "${selectedTarget.bbox.join(',')}",
-  "minzoom": ${selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : 12},
-  "maxzoom": ${selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : 22},
+  "minzoom": ${selectedTarget.layerType === 'world' ? 0 : selectedTarget.layerType === 'country' ? 6 : selectedTarget.layerType === 'province' ? 9 : selectedTarget.layerType === 'city' ? 12 : 15},
+  "maxzoom": ${selectedTarget.layerType === 'world' ? 5 : selectedTarget.layerType === 'country' ? 8 : selectedTarget.layerType === 'province' ? 11 : selectedTarget.layerType === 'city' ? 14 : 22},
   "tile_source": "opentopomap"
 }`
     };
@@ -459,9 +493,19 @@ def optimize_and_deduplicate(db_path):
                 </div>
               </div>
 
-              {/* Level 3: County/District HD */}
+              {/* Level 3: City Overview */}
               <div>
-                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">L3 • County/District HD (Z12-Z22)</span>
+                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">L3 • City Overview (Z12-Z14)</span>
+                <div className="space-y-1">
+                  {MAP_TARGETS.filter(t => t.layerType === 'city').map(target => 
+                    renderTargetButton(target, false)
+                  )}
+                </div>
+              </div>
+
+              {/* Level 4: County/District HD */}
+              <div>
+                <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase block mb-1.5">L4 • County/District HD (Z15-Z22)</span>
                 <div className="space-y-1 pl-1 border-l border-slate-800">
                   {MAP_TARGETS.filter(t => t.layerType === 'county_hd').map(target => 
                     renderTargetButton(target, true)
@@ -490,7 +534,9 @@ def optimize_and_deduplicate(db_path):
                 <span className="text-slate-500 uppercase text-[9px]">Slicing Tool Pipeline</span>
                 <p className="text-slate-200 mt-0.5">
                   {selectedTarget.layerType === 'county_hd' 
-                    ? `L3 High Definition BBox Tile Download (Zoom 12-22)` 
+                    ? `L4 High Definition BBox Tile Download (Zoom 15-22)` 
+                    : selectedTarget.layerType === 'city'
+                    ? `L3 City Overview BBox Tile Download (Zoom 12-14)`
                     : `Direct Regional BBox Tile Download`}
                 </p>
               </div>
@@ -526,10 +572,10 @@ def optimize_and_deduplicate(db_path):
         <section className="lg:col-span-8 flex flex-col gap-6">
           
           {/* Main Visual Panels Switch Header */}
-          <div className="flex border-b border-slate-800 gap-1.5 p-1 bg-slate-950 rounded-xl border max-w-lg">
+          <div className="flex border-b border-slate-800 gap-1.5 p-1 bg-slate-950 rounded-xl border max-w-xl">
             <button
               onClick={() => setActiveTab('editor')}
-              className={`flex-1 flex justify-center items-center gap-2 py-2 px-3 rounded-lg text-xs font-medium font-sans tracking-wide transition ${
+              className={`flex-1 flex justify-center items-center gap-2 py-2 px-3 rounded-lg text-[11px] font-medium font-sans tracking-wide transition ${
                 activeTab === 'editor'
                   ? 'bg-slate-800 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/50'
@@ -540,25 +586,36 @@ def optimize_and_deduplicate(db_path):
             </button>
             <button
               onClick={() => setActiveTab('cli')}
-              className={`flex-1 flex justify-center items-center gap-2 py-2 px-3 rounded-lg text-xs font-medium font-sans tracking-wide transition ${
+              className={`flex-1 flex justify-center items-center gap-2 py-2 px-3 rounded-lg text-[11px] font-medium font-sans tracking-wide transition ${
                 activeTab === 'cli'
                   ? 'bg-slate-800 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/50'
               }`}
             >
               <Terminal className="w-3.5 h-3.5" />
-              Local Sandbox Terminal
+              Sandbox Terminal
             </button>
             <button
               onClick={() => setActiveTab('guide')}
-              className={`flex-1 flex justify-center items-center gap-2 py-2 px-3 rounded-lg text-xs font-medium font-sans tracking-wide transition ${
+              className={`flex-1 flex justify-center items-center gap-2 py-2 px-3 rounded-lg text-[11px] font-medium font-sans tracking-wide transition ${
                 activeTab === 'guide'
                   ? 'bg-slate-800 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/50'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              Android Loading Guide
+              Android Guide
+            </button>
+            <button
+              onClick={() => setActiveTab('diagnostic')}
+              className={`flex-1 flex justify-center items-center gap-2 py-2 px-3 rounded-lg text-[11px] font-medium font-sans tracking-wide transition ${
+                activeTab === 'diagnostic'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/50'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              Resolution Diagnostics
             </button>
           </div>
 
@@ -670,6 +727,157 @@ if (mbtilesFile.exists()) {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* TAB 4: SOURCE DIAGNOSTIC */}
+          {activeTab === 'diagnostic' && (
+            <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-5 shadow-xl backdrop-blur-md space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-3.5">
+                <div>
+                  <h3 className="font-semibold text-sm text-slate-100 flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
+                    CyberTrail MapFactory Resolution & Capacity Diagnostics
+                  </h3>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Live testing target: <span className="text-emerald-400 font-mono">124.365°E to 124.385°E, 40.100°N to 40.120°N</span> (~2km × 2km Center of Zhenxing District)
+                  </p>
+                </div>
+                <button
+                  onClick={runDiagnostic}
+                  disabled={loadingDiagnostic}
+                  className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white font-sans text-xs font-semibold py-1.5 px-3.5 rounded-lg flex items-center gap-1.5 transition shadow-md disabled:cursor-not-allowed"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingDiagnostic ? 'animate-spin' : ''}`} />
+                  {diagnosticData ? "Re-Run Diagnostic" : "Run Live Probe"}
+                </button>
+              </div>
+
+              {loadingDiagnostic ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-3">
+                  <div className="relative">
+                    <Compass className="w-8 h-8 text-emerald-400 animate-spin" />
+                    <div className="absolute inset-0 border-2 border-emerald-500/20 rounded-full animate-ping" />
+                  </div>
+                  <p className="text-[11px] font-mono text-slate-400 tracking-wider">PROBING PUBLIC MAP TILES OVER ZOOM 15-22...</p>
+                </div>
+              ) : diagnosticData ? (
+                <div className="space-y-6">
+                  {/* Summary/Key Findings Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
+                      <span className="text-slate-500 uppercase text-[9px] block mb-1">OpenTopoMap Limit</span>
+                      <p className="text-amber-400 font-semibold font-sans text-xs">
+                        Max real zoom: <span className="text-base font-bold font-mono">Zoom 17</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                        Above Z17, OpenTopoMap throws HTTP 404. OverZoom interpolation above Z17 is done client-side or causes gaps.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
+                      <span className="text-slate-500 uppercase text-[9px] block mb-1">OpenStreetMap Standard</span>
+                      <p className="text-emerald-400 font-semibold font-sans text-xs">
+                        Max real zoom: <span className="text-base font-bold font-mono">Zoom 19</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                        OSM supports up to Z19. Offers real street and minor lane geometries with building contours.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
+                      <span className="text-slate-500 uppercase text-[9px] block mb-1">CartoVoyager Raster</span>
+                      <p className="text-emerald-400 font-semibold font-sans text-xs">
+                        Max real zoom: <span className="text-base font-bold font-mono">Zoom 20</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                        Voyager raster supports up to Z20. Smooth, modern vector-based raster tile with high fidelity.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Comparative Matrix Table */}
+                  <div className="overflow-x-auto border border-slate-800/80 rounded-lg">
+                    <table className="w-full text-left border-collapse font-mono text-[10px]">
+                      <thead>
+                        <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 text-[9px] tracking-wider uppercase">
+                          <th className="p-3">Zoom</th>
+                          <th className="p-3">BBox Tiles</th>
+                          <th className="p-3">Tested Tile</th>
+                          <th className="p-3 text-amber-400 border-l border-slate-800">OpenTopoMap</th>
+                          <th className="p-3 text-sky-400 border-l border-slate-800">OpenStreetMap</th>
+                          <th className="p-3 text-emerald-400 border-l border-slate-800">CartoVoyager</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/50">
+                        {diagnosticData.results.map((row: any) => (
+                          <tr key={row.zoom} className="hover:bg-slate-900/30">
+                            <td className="p-3 text-xs font-bold text-slate-200">{row.zoom}</td>
+                            <td className="p-3 text-slate-300">{row.totalTiles.toLocaleString()}</td>
+                            <td className="p-3 text-slate-500">{row.coord}</td>
+                            
+                            {/* OpenTopoMap status */}
+                            <td className="p-3 border-l border-slate-800/80">
+                              {row.OpenTopoMap.status === 200 ? (
+                                <div>
+                                  <span className="text-emerald-400 font-bold">200 OK</span>
+                                  <span className="text-slate-500 block text-[9px]">{row.OpenTopoMap.sizeKB}</span>
+                                </div>
+                              ) : (
+                                <span className="text-rose-400 font-medium">{row.OpenTopoMap.remarks}</span>
+                              )}
+                            </td>
+
+                            {/* OpenStreetMap status */}
+                            <td className="p-3 border-l border-slate-800/80">
+                              {row.OpenStreetMap.status === 200 ? (
+                                <div>
+                                  <span className="text-emerald-400 font-bold">200 OK</span>
+                                  <span className="text-slate-500 block text-[9px]">{row.OpenStreetMap.sizeKB}</span>
+                                </div>
+                              ) : (
+                                <span className="text-rose-400 font-medium">{row.OpenStreetMap.remarks}</span>
+                              )}
+                            </td>
+
+                            {/* CartoVoyager status */}
+                            <td className="p-3 border-l border-slate-800/80">
+                              {row.CartoVoyager.status === 200 ? (
+                                <div>
+                                  <span className="text-emerald-400 font-bold">200 OK</span>
+                                  <span className="text-slate-500 block text-[9px]">{row.CartoVoyager.sizeKB}</span>
+                                </div>
+                              ) : (
+                                <span className="text-rose-400 font-medium">{row.CartoVoyager.remarks}</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="bg-slate-950 p-4 rounded-lg border border-slate-800/80 space-y-3">
+                    <h4 className="font-semibold text-xs text-slate-300 font-sans">💡 Diagnostic Conclusions & Upgraded Strategy</h4>
+                    <ul className="list-disc pl-5 space-y-1.5 text-slate-400 text-[11px] leading-relaxed font-sans">
+                      <li>
+                        <b>OpenTopoMap Limit Check:</b> OpenTopoMap does <b>NOT</b> provide real zoom data beyond Zoom 17. Any request above Zoom 17 yields an HTTP 404, leading to missing tiles or extreme blurry pixelated interpolation when forced.
+                      </li>
+                      <li>
+                        <b>High Zoom Solution:</b> If you need <b>Zoom 18-22</b>, OpenTopoMap cannot support this natively. We recommend changing your primary source or utilizing <b>OpenStreetMap</b> (up to Z19) or <b>CartoVoyager</b> (up to Z20) in <code>map_config.json</code> to obtain real high-definition geometries.
+                      </li>
+                      <li>
+                        <b>OverZoom Client Configuration:</b> Above Z20, no public raster tile source provides real maps (they are server-side or client-side upscaled). Setting maxzoom to 22 is perfect, and we rely on MapLibre&apos;s or Android SDK&apos;s built-in <b>OverZoom</b> to upscale Zoom 20 tiles beautifully without requesting dead 404 tiles.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-8 text-center space-y-3">
+                  <Activity className="w-8 h-8 text-slate-600 mx-auto animate-pulse" />
+                  <p className="text-slate-400 text-[11px] font-sans">Click the button above to run real-time live diagnostic checks on public servers and check high zoom level capacities.</p>
+                </div>
+              )}
             </div>
           )}
 

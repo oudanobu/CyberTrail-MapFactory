@@ -2,7 +2,7 @@
   "name": "Zhenan HD (L3三级行政区高清)",
   "output": "dist/zhenan_hd.mbtiles",
   "bbox": "124.25,40.08,124.62,40.32",
-  "minzoom": 12,
+  "minzoom": 15,
   "maxzoom": 22,
   "tile_source": "opentopomap"
 }

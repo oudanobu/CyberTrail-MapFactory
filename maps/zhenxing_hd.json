@@ -2,7 +2,7 @@
   "name": "Zhenxing HD (L3三级行政区高清)",
   "output": "dist/zhenxing_hd.mbtiles",
   "bbox": "124.30,40.05,124.45,40.16",
-  "minzoom": 12,
+  "minzoom": 15,
   "maxzoom": 22,
   "tile_source": "opentopomap"
 }

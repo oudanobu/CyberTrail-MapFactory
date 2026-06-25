@@ -2,7 +2,7 @@
   "name": "Donggang HD (L3三级行政区高清)",
   "output": "dist/donggang_hd.mbtiles",
   "bbox": "123.38,39.73,124.35,40.15",
-  "minzoom": 12,
+  "minzoom": 15,
   "maxzoom": 22,
   "tile_source": "opentopomap"
 }

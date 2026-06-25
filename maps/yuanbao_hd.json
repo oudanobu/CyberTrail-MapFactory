@@ -2,7 +2,7 @@
   "name": "Yuanbao HD (L3三级行政区高清)",
   "output": "dist/yuanbao_hd.mbtiles",
   "bbox": "124.34,40.11,124.44,40.19",
-  "minzoom": 12,
+  "minzoom": 15,
   "maxzoom": 22,
   "tile_source": "opentopomap"
 }
