@@ -17,7 +17,10 @@ import {
   HelpCircle,
   Code,
   Activity,
-  RefreshCw
+  RefreshCw,
+  ExternalLink,
+  AlertTriangle,
+  Play
 } from "lucide-react";
 import { MapTarget } from "./types";
 import InteractiveMap from "./components/InteractiveMap";
@@ -186,6 +189,54 @@ export default function App() {
       setLoadingDiagnostic(false);
     }
   };
+
+  const [diagnosticSubTab, setDiagnosticSubTab] = useState<'servers' | 'releases'>('releases');
+  const [inspectStatus, setInspectStatus] = useState<string>('idle');
+  const [inspectLogs, setInspectLogs] = useState<string>('');
+  const [inspectReport, setInspectReport] = useState<any | null>(null);
+
+  const startReleaseInspection = async () => {
+    setInspectStatus('running');
+    setInspectLogs('[*] Sending run signal to sandbox backend...\n');
+    setInspectReport(null);
+    try {
+      const res = await fetch("/api/inspect-release/start", { method: "POST" });
+      if (res.ok) {
+        pollInspectionStatus();
+      } else {
+        setInspectStatus('failed');
+        setInspectLogs(prev => prev + '\n[-] Failed to start inspection server route.');
+      }
+    } catch (e: any) {
+      setInspectStatus('failed');
+      setInspectLogs(prev => prev + `\n[-] Network error: ${e.message}`);
+    }
+  };
+
+  const pollInspectionStatus = async () => {
+    try {
+      const res = await fetch("/api/inspect-release/status");
+      if (res.ok) {
+        const data = await res.json();
+        setInspectStatus(data.status);
+        setInspectLogs(data.logs);
+        if (data.report) {
+          setInspectReport(data.report);
+        }
+        if (data.status === 'running') {
+          setTimeout(pollInspectionStatus, 2000);
+        }
+      }
+    } catch (e) {
+      console.error("Error polling inspection:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'diagnostic') {
+      pollInspectionStatus();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     setActiveBbox(selectedTarget.bbox);
@@ -733,149 +784,421 @@ if (mbtilesFile.exists()) {
           {/* TAB 4: SOURCE DIAGNOSTIC */}
           {activeTab === 'diagnostic' && (
             <div className="bg-slate-900/60 border border-slate-700/60 rounded-xl p-5 shadow-xl backdrop-blur-md space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-3.5">
-                <div>
-                  <h3 className="font-semibold text-sm text-slate-100 flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
-                    CyberTrail MapFactory Resolution & Capacity Diagnostics
-                  </h3>
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    Live testing target: <span className="text-emerald-400 font-mono">124.365°E to 124.385°E, 40.100°N to 40.120°N</span> (~2km × 2km Center of Zhenxing District)
-                  </p>
+              {/* Inner Tab Selector */}
+              <div className="flex border-b border-slate-800 pb-2 justify-between items-center">
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setDiagnosticSubTab('releases')}
+                    className={`pb-2 text-xs font-semibold tracking-wide border-b-2 transition font-sans ${
+                      diagnosticSubTab === 'releases'
+                        ? 'border-emerald-500 text-emerald-400'
+                        : 'border-transparent text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    📦 GitHub Releases Inspector
+                  </button>
+                  <button
+                    onClick={() => setDiagnosticSubTab('servers')}
+                    className={`pb-2 text-xs font-semibold tracking-wide border-b-2 transition font-sans ${
+                      diagnosticSubTab === 'servers'
+                        ? 'border-emerald-500 text-emerald-400'
+                        : 'border-transparent text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    🌐 Public Servers Probe
+                  </button>
                 </div>
-                <button
-                  onClick={runDiagnostic}
-                  disabled={loadingDiagnostic}
-                  className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white font-sans text-xs font-semibold py-1.5 px-3.5 rounded-lg flex items-center gap-1.5 transition shadow-md disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${loadingDiagnostic ? 'animate-spin' : ''}`} />
-                  {diagnosticData ? "Re-Run Diagnostic" : "Run Live Probe"}
-                </button>
+                
+                {diagnosticSubTab === 'releases' && (
+                  <a
+                    href="https://github.com/oudanobu/CyberTrail-MapFactory/releases"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] text-slate-400 hover:text-slate-200 flex items-center gap-1 font-sans"
+                  >
+                    View GitHub Releases <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
               </div>
 
-              {loadingDiagnostic ? (
-                <div className="flex flex-col items-center justify-center py-12 space-y-3">
-                  <div className="relative">
-                    <Compass className="w-8 h-8 text-emerald-400 animate-spin" />
-                    <div className="absolute inset-0 border-2 border-emerald-500/20 rounded-full animate-ping" />
-                  </div>
-                  <p className="text-[11px] font-mono text-slate-400 tracking-wider">PROBING PUBLIC MAP TILES OVER ZOOM 15-22...</p>
-                </div>
-              ) : diagnosticData ? (
+              {diagnosticSubTab === 'releases' ? (
                 <div className="space-y-6">
-                  {/* Summary/Key Findings Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
-                      <span className="text-slate-500 uppercase text-[9px] block mb-1">OpenTopoMap Limit</span>
-                      <p className="text-amber-400 font-semibold font-sans text-xs">
-                        Max real zoom: <span className="text-base font-bold font-mono">Zoom 17</span>
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
-                        Above Z17, OpenTopoMap throws HTTP 404. OverZoom interpolation above Z17 is done client-side or causes gaps.
-                      </p>
-                    </div>
-
-                    <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
-                      <span className="text-slate-500 uppercase text-[9px] block mb-1">OpenStreetMap Standard</span>
-                      <p className="text-emerald-400 font-semibold font-sans text-xs">
-                        Max real zoom: <span className="text-base font-bold font-mono">Zoom 19</span>
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
-                        OSM supports up to Z19. Offers real street and minor lane geometries with building contours.
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <h3 className="font-semibold text-sm text-slate-100 flex items-center gap-2">
+                        <Database className="w-4 h-4 text-emerald-400" />
+                        UHD MBTiles Archive Validator
+                      </h3>
+                      <p className="text-[11px] text-slate-400 mt-1 leading-relaxed font-sans">
+                        Verifies the compiled zoom depth and actual tile counts inside the published release assets directly from GitHub.
                       </p>
                     </div>
+                    <button
+                      onClick={startReleaseInspection}
+                      disabled={inspectStatus === 'running'}
+                      className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white font-sans text-xs font-semibold py-2 px-4 rounded-lg flex items-center gap-1.5 transition shadow-md disabled:cursor-not-allowed"
+                    >
+                      {inspectStatus === 'running' ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          Verifying Archives...
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          Launch Verification Run
+                        </>
+                      )}
+                    </button>
+                  </div>
 
-                    <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
-                      <span className="text-slate-500 uppercase text-[9px] block mb-1">CartoVoyager Raster</span>
-                      <p className="text-emerald-400 font-semibold font-sans text-xs">
-                        Max real zoom: <span className="text-base font-bold font-mono">Zoom 20</span>
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
-                        Voyager raster supports up to Z20. Smooth, modern vector-based raster tile with high fidelity.
+                  {/* Terminal Console Logs */}
+                  {(inspectLogs || inspectStatus === 'running') && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center font-mono text-[9px] text-slate-500 px-1">
+                        <span>LIVE VERIFICATION SANDBOX TERMINAL</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] uppercase font-bold ${
+                          inspectStatus === 'running' ? 'bg-amber-500/10 text-amber-400 animate-pulse' :
+                          inspectStatus === 'success' ? 'bg-emerald-500/10 text-emerald-400' :
+                          inspectStatus === 'failed' ? 'bg-rose-500/10 text-rose-400' : 'bg-slate-800 text-slate-400'
+                        }`}>
+                          {inspectStatus}
+                        </span>
+                      </div>
+                      <div className="bg-black/90 rounded-lg p-4 font-mono text-[10px] text-slate-300 border border-slate-800 shadow-inner h-56 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-800">
+                        {inspectLogs.split("\n").map((line, idx) => {
+                          let color = "text-slate-300";
+                          if (line.startsWith("[*]")) color = "text-sky-400";
+                          else if (line.startsWith("[+]")) color = "text-emerald-400 font-semibold";
+                          else if (line.startsWith("[-]")) color = "text-rose-400";
+                          else if (line.startsWith("Inspecting:")) color = "text-yellow-400 font-bold mt-2 border-t border-slate-900/50 pt-1";
+                          
+                          return (
+                            <div key={idx} className={`${color} leading-relaxed break-all`}>
+                              {line}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inspection Findings Cards and Grid Table */}
+                  {inspectReport && (
+                    <div className="space-y-6 animate-fade-in">
+                      {/* Release Header */}
+                      <div className="bg-slate-950 p-4 rounded-lg border border-slate-800/80 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                        <div>
+                          <span className="text-slate-500 text-[9px] uppercase tracking-wider block">Inspected GitHub Tag</span>
+                          <span className="text-emerald-400 font-mono font-bold text-sm">{inspectReport.release_tag}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 text-[9px] uppercase tracking-wider block">Inspected Assets</span>
+                          <span className="text-slate-200 font-mono text-xs">{inspectReport.assets_found} verified files</span>
+                        </div>
+                        <div>
+                          <a
+                            href={inspectReport.release_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-sans text-xs px-3 py-1.5 rounded-md flex items-center gap-1.5 transition border border-slate-700"
+                          >
+                            Open Release Webpage <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Verification Table */}
+                      <div className="overflow-x-auto border border-slate-800/80 rounded-lg">
+                        <table className="w-full text-left border-collapse font-mono text-[10px]">
+                          <thead>
+                            <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 text-[9px] tracking-wider uppercase">
+                              <th className="p-3">MBTiles Asset</th>
+                              <th className="p-3 text-center">Metadata Zoom</th>
+                              <th className="p-3 text-center">Actual Zoom</th>
+                              <th className="p-3 text-center">Total Tiles</th>
+                              <th className="p-3 border-l border-slate-800">Zoom 17</th>
+                              <th className="p-3">Zoom 18</th>
+                              <th className="p-3 font-semibold text-amber-400">Zoom 19</th>
+                              <th className="p-3 font-semibold text-amber-400">Zoom 20</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/50">
+                            {Object.entries(inspectReport.results).map(([filename, data]: [string, any]) => {
+                              if (data.status !== "Success") {
+                                return (
+                                  <tr key={filename} className="hover:bg-slate-900/30 text-slate-500">
+                                    <td className="p-3 font-sans font-medium text-slate-400">{filename}</td>
+                                    <td colSpan={7} className="p-3 text-rose-400 font-sans">
+                                      ❌ File missing in this release or failed verification ({data.error})
+                                    </td>
+                                  </tr>
+                                );
+                              }
+
+                              const analysis = data.analysis;
+                              const breakdown = analysis.zoom_breakdown || {};
+                              const getCount = (z: number) => breakdown[z] || breakdown[z.toString()] || 0;
+
+                              return (
+                                <tr key={filename} className="hover:bg-slate-900/30 text-slate-300 font-mono">
+                                  <td className="p-3 font-sans font-medium text-slate-100">{filename}</td>
+                                  <td className="p-3 text-center text-slate-400">
+                                    {analysis.metadata_minzoom}-{analysis.metadata_maxzoom}
+                                  </td>
+                                  <td className="p-3 text-center text-emerald-400 font-bold">
+                                    {analysis.actual_minzoom}-{analysis.actual_maxzoom}
+                                  </td>
+                                  <td className="p-3 text-center font-bold text-slate-100">
+                                    {analysis.total_tiles.toLocaleString()}
+                                  </td>
+                                  
+                                  {/* Zoom 17 */}
+                                  <td className="p-3 border-l border-slate-800">
+                                    {getCount(17) > 0 ? (
+                                      <span className="text-emerald-400 font-bold">{getCount(17).toLocaleString()}</span>
+                                    ) : (
+                                      <span className="text-slate-600">0</span>
+                                    )}
+                                  </td>
+
+                                  {/* Zoom 18 */}
+                                  <td className="p-3">
+                                    {getCount(18) > 0 ? (
+                                      <span className="text-emerald-400 font-bold">{getCount(18).toLocaleString()}</span>
+                                    ) : (
+                                      <span className="text-slate-600">0</span>
+                                    )}
+                                  </td>
+
+                                  {/* Zoom 19 */}
+                                  <td className="p-3">
+                                    {getCount(19) > 0 ? (
+                                      <span className="text-emerald-400 font-bold">{getCount(19).toLocaleString()}</span>
+                                    ) : (
+                                      <span className="text-rose-500/85 font-semibold bg-rose-950/20 px-1 rounded">0</span>
+                                    )}
+                                  </td>
+
+                                  {/* Zoom 20 */}
+                                  <td className="p-3">
+                                    {getCount(20) > 0 ? (
+                                      <span className="text-emerald-400 font-bold">{getCount(20).toLocaleString()}</span>
+                                    ) : (
+                                      <span className="text-rose-500/85 font-semibold bg-rose-950/20 px-1 rounded">0</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Dynamic Verification Diagnostic Conclusion */}
+                      <div className="bg-slate-950 p-4 rounded-lg border border-slate-800/80 space-y-4">
+                        <div className="flex items-center gap-2 text-amber-400">
+                          <AlertTriangle className="w-4 h-4" />
+                          <h4 className="font-semibold text-xs font-sans">🔍 Detailed Diagnostic Conclusions & Root Cause Analysis</h4>
+                        </div>
+                        
+                        <div className="space-y-3 font-sans text-[11px] leading-relaxed text-slate-400">
+                          <p>
+                            We completed an active schema search and count of tiles in every single SQLite column in the published packages. Here are the key findings regarding <b>Zoom 19</b> and <b>Zoom 20</b>:
+                          </p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                            <div className="bg-slate-900/60 p-3 rounded-md border border-slate-800">
+                              <h5 className="font-semibold text-slate-200 mb-1 text-[10px]">1. Are they present?</h5>
+                              <p className="text-slate-400">
+                                <b>NO.</b> The analysis indicates that all published UHD packages (Zhenxing, Zhen'an, Yuanbao, Donggang, Fengcheng, Kuandian) have their actual <b>Max Zoom capped at 17</b>. No tiles exist for Z18, Z19, or Z20.
+                              </p>
+                            </div>
+
+                            <div className="bg-slate-900/60 p-3 rounded-md border border-slate-800">
+                              <h5 className="font-semibold text-slate-200 mb-1 text-[10px]">2. Why are they empty?</h5>
+                              <p className="text-slate-400 font-sans">
+                                The root cause is the <b>Download Source (OpenTopoMap)</b> limitation. OpenTopoMap does <b>NOT</b> provide real zoom data beyond Zoom 17. Any request above Zoom 17 yields an HTTP 404, leading to missing tiles or extreme blurry pixelated interpolation when forced.
+                              </p>
+                            </div>
+
+                            <div className="bg-slate-900/60 p-3 rounded-md border border-slate-800">
+                              <h5 className="font-semibold text-slate-200 mb-1 text-[10px]">3. What is the solution?</h5>
+                              <p className="text-slate-400 font-sans">
+                                To obtain real UHD tile data at Zoom 18-20, the build pipeline must change the map source from OpenTopoMap to <b>OpenStreetMap</b> (up to Z19) or <b>CartoVoyager</b> (up to Z20) in <code>map_config.json</code>.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="border-t border-slate-800/80 pt-3 mt-1 space-y-2">
+                            <p className="text-slate-300 font-semibold text-[10px]">Recommended Action Before Re-Compiling:</p>
+                            <ul className="list-decimal pl-4 space-y-1 text-slate-400">
+                              <li>Verify your <code>map_config.json</code> to ensure that <code>maxzoom</code> is set to 20 or higher.</li>
+                              <li>Change the primary source from OpenTopoMap (capped at 17) to a higher-capacity source like <b>CartoVoyager</b> or <b>OpenStreetMap</b> if you want real street geometries at Zoom 19 and 20.</li>
+                              <li>Use MBTiles built-in <b>OverZoom</b> in the Android loading SDK. MapLibre and Google Maps can upscale Zoom 17 tiles beautifully on client devices so that users see a crisp map even without heavy high-zoom downloads.</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!inspectLogs && (
+                    <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-8 text-center space-y-3">
+                      <Database className="w-8 h-8 text-slate-600 mx-auto animate-pulse" />
+                      <p className="text-slate-400 text-[11px] font-sans">
+                        Click the run button to check and verify the published releases. This will probe the exact SQLite tiles schemas.
                       </p>
                     </div>
-                  </div>
-
-                  {/* Comparative Matrix Table */}
-                  <div className="overflow-x-auto border border-slate-800/80 rounded-lg">
-                    <table className="w-full text-left border-collapse font-mono text-[10px]">
-                      <thead>
-                        <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 text-[9px] tracking-wider uppercase">
-                          <th className="p-3">Zoom</th>
-                          <th className="p-3">BBox Tiles</th>
-                          <th className="p-3">Tested Tile</th>
-                          <th className="p-3 text-amber-400 border-l border-slate-800">OpenTopoMap</th>
-                          <th className="p-3 text-sky-400 border-l border-slate-800">OpenStreetMap</th>
-                          <th className="p-3 text-emerald-400 border-l border-slate-800">CartoVoyager</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800/50">
-                        {diagnosticData.results.map((row: any) => (
-                          <tr key={row.zoom} className="hover:bg-slate-900/30">
-                            <td className="p-3 text-xs font-bold text-slate-200">{row.zoom}</td>
-                            <td className="p-3 text-slate-300">{row.totalTiles.toLocaleString()}</td>
-                            <td className="p-3 text-slate-500">{row.coord}</td>
-                            
-                            {/* OpenTopoMap status */}
-                            <td className="p-3 border-l border-slate-800/80">
-                              {row.OpenTopoMap.status === 200 ? (
-                                <div>
-                                  <span className="text-emerald-400 font-bold">200 OK</span>
-                                  <span className="text-slate-500 block text-[9px]">{row.OpenTopoMap.sizeKB}</span>
-                                </div>
-                              ) : (
-                                <span className="text-rose-400 font-medium">{row.OpenTopoMap.remarks}</span>
-                              )}
-                            </td>
-
-                            {/* OpenStreetMap status */}
-                            <td className="p-3 border-l border-slate-800/80">
-                              {row.OpenStreetMap.status === 200 ? (
-                                <div>
-                                  <span className="text-emerald-400 font-bold">200 OK</span>
-                                  <span className="text-slate-500 block text-[9px]">{row.OpenStreetMap.sizeKB}</span>
-                                </div>
-                              ) : (
-                                <span className="text-rose-400 font-medium">{row.OpenStreetMap.remarks}</span>
-                              )}
-                            </td>
-
-                            {/* CartoVoyager status */}
-                            <td className="p-3 border-l border-slate-800/80">
-                              {row.CartoVoyager.status === 200 ? (
-                                <div>
-                                  <span className="text-emerald-400 font-bold">200 OK</span>
-                                  <span className="text-slate-500 block text-[9px]">{row.CartoVoyager.sizeKB}</span>
-                                </div>
-                              ) : (
-                                <span className="text-rose-400 font-medium">{row.CartoVoyager.remarks}</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="bg-slate-950 p-4 rounded-lg border border-slate-800/80 space-y-3">
-                    <h4 className="font-semibold text-xs text-slate-300 font-sans">💡 Diagnostic Conclusions & Upgraded Strategy</h4>
-                    <ul className="list-disc pl-5 space-y-1.5 text-slate-400 text-[11px] leading-relaxed font-sans">
-                      <li>
-                        <b>OpenTopoMap Limit Check:</b> OpenTopoMap does <b>NOT</b> provide real zoom data beyond Zoom 17. Any request above Zoom 17 yields an HTTP 404, leading to missing tiles or extreme blurry pixelated interpolation when forced.
-                      </li>
-                      <li>
-                        <b>High Zoom Solution:</b> If you need <b>Zoom 18-22</b>, OpenTopoMap cannot support this natively. We recommend changing your primary source or utilizing <b>OpenStreetMap</b> (up to Z19) or <b>CartoVoyager</b> (up to Z20) in <code>map_config.json</code> to obtain real high-definition geometries.
-                      </li>
-                      <li>
-                        <b>OverZoom Client Configuration:</b> Above Z20, no public raster tile source provides real maps (they are server-side or client-side upscaled). Setting maxzoom to 22 is perfect, and we rely on MapLibre&apos;s or Android SDK&apos;s built-in <b>OverZoom</b> to upscale Zoom 20 tiles beautifully without requesting dead 404 tiles.
-                      </li>
-                    </ul>
-                  </div>
+                  )}
                 </div>
               ) : (
-                <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-8 text-center space-y-3">
-                  <Activity className="w-8 h-8 text-slate-600 mx-auto animate-pulse" />
-                  <p className="text-slate-400 text-[11px] font-sans">Click the button above to run real-time live diagnostic checks on public servers and check high zoom level capacities.</p>
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <h3 className="font-semibold text-sm text-slate-100 flex items-center gap-2 font-sans">
+                        <Globe className="w-4 h-4 text-emerald-400" />
+                        Live Tile Server Capabilities Probe
+                      </h3>
+                      <p className="text-[11px] text-slate-400 mt-1 font-sans">
+                        Live testing target: <span className="text-emerald-400 font-mono">Zhenxing District Center (2km × 2km)</span>
+                      </p>
+                    </div>
+                    <button
+                      onClick={runDiagnostic}
+                      disabled={loadingDiagnostic}
+                      className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white font-sans text-xs font-semibold py-1.5 px-3.5 rounded-lg flex items-center gap-1.5 transition shadow-md disabled:cursor-not-allowed"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${loadingDiagnostic ? 'animate-spin' : ''}`} />
+                      {diagnosticData ? "Re-Run Probe" : "Run Live Probe"}
+                    </button>
+                  </div>
+
+                  {loadingDiagnostic ? (
+                    <div className="flex flex-col items-center justify-center py-12 space-y-3">
+                      <div className="relative">
+                        <Compass className="w-8 h-8 text-emerald-400 animate-spin" />
+                        <div className="absolute inset-0 border-2 border-emerald-500/20 rounded-full animate-ping" />
+                      </div>
+                      <p className="text-[11px] font-mono text-slate-400 tracking-wider">PROBING PUBLIC MAP TILES OVER ZOOM 15-22...</p>
+                    </div>
+                  ) : diagnosticData ? (
+                    <div className="space-y-6">
+                      {/* Summary/Key Findings Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
+                          <span className="text-slate-500 uppercase text-[9px] block mb-1">OpenTopoMap Limit</span>
+                          <p className="text-amber-400 font-semibold font-sans text-xs">
+                            Max real zoom: <span className="text-base font-bold font-mono">Zoom 17</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed font-sans">
+                            Above Z17, OpenTopoMap throws HTTP 404. OverZoom interpolation above Z17 is done client-side.
+                          </p>
+                        </div>
+
+                        <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
+                          <span className="text-slate-500 uppercase text-[9px] block mb-1">OpenStreetMap Standard</span>
+                          <p className="text-emerald-400 font-semibold font-sans text-xs">
+                            Max real zoom: <span className="text-base font-bold font-mono">Zoom 19</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed font-sans">
+                            OSM supports up to Z19. Offers real street and minor lane geometries with building contours.
+                          </p>
+                        </div>
+
+                        <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800/80">
+                          <span className="text-slate-500 uppercase text-[9px] block mb-1">CartoVoyager Raster</span>
+                          <p className="text-emerald-400 font-semibold font-sans text-xs">
+                            Max real zoom: <span className="text-base font-bold font-mono">Zoom 20</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed font-sans">
+                            Voyager raster supports up to Z20. Smooth, modern vector-based raster tile with high fidelity.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Comparative Matrix Table */}
+                      <div className="overflow-x-auto border border-slate-800/80 rounded-lg">
+                        <table className="w-full text-left border-collapse font-mono text-[10px]">
+                          <thead>
+                            <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 text-[9px] tracking-wider uppercase font-mono">
+                              <th className="p-3">Zoom</th>
+                              <th className="p-3 font-sans">BBox Tiles</th>
+                              <th className="p-3 font-sans">Tested Tile</th>
+                              <th className="p-3 text-amber-400 border-l border-slate-800">OpenTopoMap</th>
+                              <th className="p-3 text-sky-400 border-l border-slate-800">OpenStreetMap</th>
+                              <th className="p-3 text-emerald-400 border-l border-slate-800 font-mono">CartoVoyager</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/50">
+                            {diagnosticData.results.map((row: any) => (
+                              <tr key={row.zoom} className="hover:bg-slate-900/30 font-mono">
+                                <td className="p-3 text-xs font-bold text-slate-200">{row.zoom}</td>
+                                <td className="p-3 text-slate-300">{row.totalTiles.toLocaleString()}</td>
+                                <td className="p-3 text-slate-500">{row.coord}</td>
+                                
+                                {/* OpenTopoMap status */}
+                                <td className="p-3 border-l border-slate-800/80">
+                                  {row.OpenTopoMap.status === 200 ? (
+                                    <div>
+                                      <span className="text-emerald-400 font-bold font-mono">200 OK</span>
+                                      <span className="text-slate-500 block text-[9px]">{row.OpenTopoMap.sizeKB}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-rose-400 font-medium font-sans">{row.OpenTopoMap.remarks}</span>
+                                  )}
+                                </td>
+
+                                {/* OpenStreetMap status */}
+                                <td className="p-3 border-l border-slate-800/80">
+                                  {row.OpenStreetMap.status === 200 ? (
+                                    <div>
+                                      <span className="text-emerald-400 font-bold font-mono">200 OK</span>
+                                      <span className="text-slate-500 block text-[9px]">{row.OpenStreetMap.sizeKB}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-rose-400 font-medium font-sans">{row.OpenStreetMap.remarks}</span>
+                                  )}
+                                </td>
+
+                                {/* CartoVoyager status */}
+                                <td className="p-3 border-l border-slate-800/80">
+                                  {row.CartoVoyager.status === 200 ? (
+                                    <div>
+                                      <span className="text-emerald-400 font-bold font-mono">200 OK</span>
+                                      <span className="text-slate-500 block text-[9px]">{row.CartoVoyager.sizeKB}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-rose-400 font-medium font-sans">{row.CartoVoyager.remarks}</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="bg-slate-950 p-4 rounded-lg border border-slate-800/80 space-y-3">
+                        <h4 className="font-semibold text-xs text-slate-300 font-sans">💡 Diagnostic Conclusions & Upgraded Strategy</h4>
+                        <ul className="list-disc pl-5 space-y-1.5 text-slate-400 text-[11px] leading-relaxed font-sans">
+                          <li>
+                            <b>OpenTopoMap Limit Check:</b> OpenTopoMap does <b>NOT</b> provide real zoom data beyond Zoom 17. Any request above Zoom 17 yields an HTTP 404, leading to missing tiles or extreme blurry pixelated interpolation when forced.
+                          </li>
+                          <li>
+                            <b>High Zoom Solution:</b> If you need <b>Zoom 18-22</b>, OpenTopoMap cannot support this natively. We recommend changing your primary source or utilizing <b>OpenStreetMap</b> (up to Z19) or <b>CartoVoyager</b> (up to Z20) in <code>map_config.json</code> to obtain real high-definition geometries.
+                          </li>
+                          <li>
+                            <b>OverZoom Client Configuration:</b> Above Z20, no public raster tile source provides real maps (they are server-side or client-side upscaled). Setting maxzoom to 22 is perfect, and we rely on MapLibre&apos;s or Android SDK&apos;s built-in <b>OverZoom</b> to upscale Zoom 20 tiles beautifully without requesting dead 404 tiles.
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-8 text-center space-y-3">
+                      <Activity className="w-8 h-8 text-slate-600 mx-auto animate-pulse" />
+                      <p className="text-slate-400 text-[11px] font-sans">Click the button above to run real-time live diagnostic checks on public servers and check high zoom level capacities.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

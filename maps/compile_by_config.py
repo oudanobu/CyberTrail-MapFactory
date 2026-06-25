@@ -14,10 +14,10 @@ WORKSPACE_ROOT = os.path.dirname(MAPS_DIR)
 
 # Category definitions mapping to target JSON files (keys without .json extension)
 CATEGORIES = {
-    "country": ["china", "japan"],
+    "country": ["world", "china", "japan"],
     "province": ["liaoning"],
     "admin3": ["zhenxing_hd", "yuanbao_hd", "zhenan_hd", "donggang_hd", "fengcheng_hd", "kuandian_hd"],
-    "all": ["world", "china", "japan", "liaoning", "zhenxing_hd", "yuanbao_hd", "zhenan_hd", "donggang_hd", "fengcheng_hd", "kuandian_hd"]
+    "all": ["world", "china", "japan", "liaoning", "dandong", "zhenxing_hd", "yuanbao_hd", "zhenan_hd", "donggang_hd", "fengcheng_hd", "kuandian_hd"]
 }
 
 def clean_target(target):

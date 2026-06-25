@@ -84,3 +84,25 @@ jobs:
               sqlite3 "$f" "SELECT zoom_level, COUNT(*) FROM tiles GROUP BY zoom_level;"
             fi
           done
+
+      - name: Generate Release Tag
+        id: release-tag
+        run: |
+          TAG_NAME="maps-raster-$(date +'%Y%m%d-%H%M')"
+          echo "tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release-tag.outputs.tag }}
+          name: "CyberTrail Maps Release ${{ steps.release-tag.outputs.tag }}"
+          body: |
+            ### 🗺️ CyberTrail MapFactory Offline Map Compilation Run
+            - **Target Category/Key**: `${{ steps.target-selector.outputs.selected_target }}`
+            - **Build Status**: Success ✅
+            - **Generated Packages**: Built and optimized ready-for-mobile offline MBTiles raster layers.
+          draft: false
+          prerelease: false
+          files: dist/*.mbtiles
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

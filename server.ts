@@ -1,6 +1,8 @@
 import express from "express";
 import path from "path";
 import dns from "dns";
+import { spawn } from "child_process";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 
@@ -165,6 +167,69 @@ app.get("/api/diagnostic", async (req, res) => {
     console.error("Diagnostic error:", error);
     res.status(500).json({ error: error.message });
   }
+});
+
+let inspectProcess: any = null;
+let inspectLogs = "";
+let inspectStatus = "idle"; // "idle", "running", "success", "failed"
+
+app.post("/api/inspect-release/start", (req, res) => {
+  if (inspectStatus === "running") {
+    return res.json({ status: "running", message: "Inspection already in progress." });
+  }
+
+  inspectLogs = "[*] Launching GitHub Releases MBTiles Diagnostic Inspector...\n";
+  inspectStatus = "running";
+
+  try {
+    const pythonScript = path.join(process.cwd(), "maps", "inspect_release_mbtiles.py");
+    inspectProcess = spawn("python3", [pythonScript]);
+
+    inspectProcess.stdout.on("data", (data: any) => {
+      const chunk = data.toString();
+      inspectLogs += chunk;
+    });
+
+    inspectProcess.stderr.on("data", (data: any) => {
+      const chunk = data.toString();
+      inspectLogs += chunk;
+    });
+
+    inspectProcess.on("close", (code: number) => {
+      if (code === 0) {
+        inspectStatus = "success";
+        inspectLogs += "\n[+] Inspection completed successfully!\n";
+      } else {
+        inspectStatus = "failed";
+        inspectLogs += `\n[-] Inspection failed with exit code ${code}\n`;
+      }
+      inspectProcess = null;
+    });
+
+    res.json({ status: "running", message: "Inspection started." });
+  } catch (error: any) {
+    inspectStatus = "failed";
+    inspectLogs += `\n[-] Failed to start process: ${error.message}\n`;
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/inspect-release/status", (req, res) => {
+  let reportData = null;
+  const jsonReportPath = path.join(process.cwd(), "maps", "release_inspection_report.json");
+  if (fs.existsSync(jsonReportPath)) {
+    try {
+      reportData = JSON.parse(fs.readFileSync(jsonReportPath, "utf-8"));
+    } catch (e: any) {
+      console.error("Failed to parse report JSON:", e);
+    }
+  }
+
+  res.json({
+    status: inspectStatus,
+    logs: inspectLogs,
+    report: reportData
+  });
 });
 
 async function main() {
